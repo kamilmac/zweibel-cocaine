@@ -57,9 +57,12 @@ const modifiers = {
     return (vec) => {
       if (counter > 120) {
         dir = [
-          Math.random() * 2 - 1,
-          Math.random() * 2 - 1,
-          Math.random() * 2 - 1,
+          // Math.random() * 2 - 1,
+          // Math.random() * 2 - 1,
+          // Math.random() * 2 - 1,
+          Math.random() * 2 - 1 - (Math.abs(prev[0]) > 8 ? prev[0] : 0),
+          Math.random() * 2 - 1 - (Math.abs(prev[1]) > 8 ? prev[1] : 0),
+          Math.random() * 2 - 1 - (Math.abs(prev[2]) > 8 ? prev[2] : 0),
         ];
         counter = 0;
       }

@@ -64,7 +64,7 @@ const bokehPass = new BokehPass( scene, camera, {
   // composer.addPass( afterimagePass );
   //  afterimagePass.uniforms['damp'] = { value: 0.7 };
   const effect2 = new ShaderPass(RGBShiftShader);
-  effect2.uniforms["amount"].value = 0.0032;
+  effect2.uniforms["amount"].value = 0.004;
   composer.addPass(effect2);
 
   // const effect1 = new ShaderPass( DotScreenShader );

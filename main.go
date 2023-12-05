@@ -9,7 +9,12 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/gorilla/websocket"
 )
+
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool { return true },
+}
 
 func main() {
 	r := chi.NewRouter()
@@ -18,6 +23,27 @@ func main() {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(30 * time.Second))
+
+	r.Get("/ws", func(w http.ResponseWriter, r *http.Request) {
+		conn, err := upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			log.Print("upgrade:", err)
+			return
+		}
+		defer conn.Close()
+		for {
+			messageType, message, err := conn.ReadMessage()
+			if err != nil {
+				log.Println("read:", err)
+				break
+			}
+			log.Printf("recv: %s", message)
+			if err := conn.WriteMessage(messageType, message); err != nil {
+				log.Println("write:", err)
+				break
+			}
+		}
+	})
 
 	r.Handle("/components/*", http.FileServer(http.Dir(".")))
 	r.Get("/folders", func(w http.ResponseWriter, r *http.Request) {

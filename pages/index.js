@@ -14,7 +14,7 @@ const playerColors = [
   '#FFA500', // Orange
   '#A52A2A', // Brown
   '#FFC0CB', // Pink
-  '#A9A9A9'  // Dark Gray
+  '#A9A9A9',  // Dark Gray
 ];
 
 let playerColor = '';
@@ -28,16 +28,17 @@ const getRandomColor = () => {
 const content = document.getElementById('content');
 content.style.backgroundColor = getRandomColor();
 
-const wsEndpoint = 'wss://' + window.location.host + '/ws';
+const protocol = window.location.protocol.includes('https') ? 'wss://' : 'ws://';
+const wsEndpoint = protocol + window.location.host + '/baby';
 
 const ws = new WebSocket(wsEndpoint);
 ws.onopen = function(event) {
     console.log("Connection opened");
 };
 
-ws.onmessage = function(event) {
-    console.log("Received message: " + event.data);
-};
+// ws.onmessage = function(event) {
+//     console.log("Received message: " + event.data);
+// };
 
 ws.onerror = function(error) {
     console.error("WebSocket Error: " + error);
@@ -52,12 +53,18 @@ content.addEventListener('pointerup', () => {
 });
 
 const devPos = [0, 0, 0];
+const id = String(Math.random() * 100000000000000000);
 window.addEventListener("devicemotion", (event) => {
-  devPos[0] = event.acceleration.x / 10
-  devPos[1] = event.acceleration.y / 10
-  devPos[2] = event.acceleration.z / 10
+  devPos[0] = event.acceleration.x
+  devPos[1] = event.acceleration.y
+  devPos[2] = event.acceleration.z
   ws.send(JSON.stringify({
-    playerColor,
-    playerPos: devPos,
+    id,
+    col: playerColor,
+    pos: devPos,
   }))
 });
+
+setInterval(() => {
+  ws.send('baby calling')
+}, 3000)

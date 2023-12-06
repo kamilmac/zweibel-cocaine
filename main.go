@@ -16,6 +16,8 @@ var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool { return true },
 }
 
+var daddy *websocket.Conn
+
 func main() {
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
@@ -24,7 +26,7 @@ func main() {
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(30 * time.Second))
 
-	r.Get("/ws", func(w http.ResponseWriter, r *http.Request) {
+	r.Get("/baby", func(w http.ResponseWriter, r *http.Request) {
 		conn, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
 			log.Print("upgrade:", err)
@@ -34,14 +36,36 @@ func main() {
 		for {
 			messageType, message, err := conn.ReadMessage()
 			if err != nil {
-				log.Println("read:", err)
+				// log.Println("read:", err)
 				break
 			}
 			log.Printf("recv: %s", message)
-			if err := conn.WriteMessage(messageType, message); err != nil {
+			if err := daddy.WriteMessage(messageType, message); err != nil {
 				log.Println("write:", err)
 				break
 			}
+		}
+	})
+
+	r.Get("/daddy", func(w http.ResponseWriter, r *http.Request) {
+		conn, err := upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			log.Print("upgrade:", err)
+			return
+		}
+		daddy = conn
+		defer daddy.Close()
+		for {
+			daddy.ReadMessage()
+			// if err != nil {
+			// 	log.Println("read:", err)
+			// 	break
+			// }
+			// log.Printf("recv: %s", message)
+			// if err := conn.WriteMessage(messageType, message); err != nil {
+			// 	log.Println("write:", err)
+			// 	break
+			// }
 		}
 	})
 

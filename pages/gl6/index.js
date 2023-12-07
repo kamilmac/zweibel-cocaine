@@ -113,13 +113,6 @@ const PLAYERS = {};
 ws.onmessage = function(event) {
   const player = JSON.parse(event.data);
   let acc = player.pos;
-  // if (
-  //   Math.abs(acc[0]) < 0.1 ||
-  //   Math.abs(acc[1]) < 0.1 ||
-  //   Math.abs(acc[2]) < 0.1
-  // ) {
-  //   acc = [0, 0, 0]
-  // }
   if (!PLAYERS[player.id]) {
     PLAYERS[player.id] = player;
     return;
@@ -127,7 +120,6 @@ ws.onmessage = function(event) {
   PLAYERS[player.id].pos[0] = acc[0]
   PLAYERS[player.id].pos[1] = acc[1]
   PLAYERS[player.id].pos[2] = acc[2]
-  // console.log(PLAYERS)
 };
 
 setupThree();

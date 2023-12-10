@@ -32,39 +32,61 @@ const protocol = window.location.protocol.includes('https') ? 'wss://' : 'ws://'
 const wsEndpoint = protocol + window.location.host + '/baby';
 
 const ws = new WebSocket(wsEndpoint);
-ws.onopen = function(event) {
-    console.log("Connection opened");
+
+ws.onopen = function (event) {
+  console.log("Connection opened");
 };
 
-// ws.onmessage = function(event) {
-//     console.log("Received message: " + event.data);
-// };
-
-ws.onerror = function(error) {
-    console.error("WebSocket Error: " + error);
+ws.onerror = function (error) {
+  console.error("WebSocket Error: " + error);
 };
 
-ws.onclose = function(event) {
-    console.log("Connection closed");
+ws.onclose = function (event) {
+  console.log("Connection closed");
 };
 
-content.addEventListener('pointerup', () => {
-  ws.send('!hot')
+let isTouching = false;
+content.addEventListener('pointerdown', () => {
+  isTouching = true;
 });
 
-const devPos = [0, 0, 0];
+content.addEventListener('pointerup', () => {
+  isTouching = false;
+});
+
+let rotationRate = [0, 0, 0];
+let acceleration = [0, 0, 0];
+let eulerRotation = [0, 0, 0];
+
 const id = String(Math.random() * 100000000000000000);
+
+const SAMPLE_RATE = 2;
+let counter = 0
+
+window.addEventListener("deviceorientation", (event) => {
+  eulerRotation[0] = event.alpha
+  eulerRotation[1] = event.beta
+  eulerRotation[2] = event.gamma
+})
+
 window.addEventListener("devicemotion", (event) => {
-  devPos[0] = event.acceleration.x
-  devPos[1] = event.acceleration.y
-  devPos[2] = event.acceleration.z
+  acceleration[0] = event.acceleration.x
+  acceleration[1] = event.acceleration.y
+  acceleration[2] = event.acceleration.z
+  rotationRate[0] = event.rotationRate.alpha
+  rotationRate[1] = event.rotationRate.beta
+  rotationRate[2] = event.rotationRate.gamma
   ws.send(JSON.stringify({
     id,
+    int: event.interval,
+    on: isTouching,
     col: playerColor,
-    pos: devPos,
+    acc: acceleration,
+    rot: rotationRate,
+    eur: eulerRotation,
   }))
 });
 
-setInterval(() => {
-  ws.send('baby calling')
-}, 3000)
+window.setTimeout(() => {
+  ws.send('hello daddy')
+}, 1000)

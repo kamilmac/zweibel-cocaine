@@ -39,54 +39,65 @@ class Stage {
     this.width = 12;
     this.depth = 12;
     this.cubeSize = 64;
+    this.padding = 4
     this.init();
   }
 
   init() {
     this.cubes = [];
-    for (let x = 0; x < this.width + 4; x++) {
+    for (let x = 0; x < this.width + this.padding; x++) {
       this.cubes[x] = [];
-      for (let y = 0; y < this.height + 4; y++) {
+      for (let y = 0; y < this.height + this.padding; y++) {
         this.cubes[x][y] = [];
-        for (let z = 0; z < this.depth + 4; z++) {
+        for (let z = 0; z < this.depth + this.padding; z++) {
           this.cubes[x][y][z] = 0;
+          if (y === 0) {
+            this.cubes[x][y][z] = 1;
+          }
         }
       }
     }
   }
 
   setFilledCube(x, y, z, id) {
-    this.cubes[x][y][z] = id;
+    if (this.cubes[x] && this.cubes[x][y] && this.cubes[x][y][z] !== undefined) {
+      this.cubes[x][y][z] = id;
+    }
   }
 
   setEmptyCube(x, y, z) {
-    this.cubes[x][y][z] = 0;
+    if (this.cubes[x] && this.cubes[x][y] && this.cubes[x][y][z] !== undefined) {
+      this.cubes[x][y][z] = 0;
+    }
   }
 
   isFilledCube(x, y, z) {
-    return this.cubes[x][y][z] !== 0;
-  }
-
-  isColliding(x, y, z, id) {
-    return this.cubes[x][y][z] !== 0 || this.cubes[x][y][z] !== id;
+    if (this.cubes[x] && this.cubes[x][y] && this.cubes[x][y][z] !== undefined) {
+      return this.cubes[x][y][z] !== 0;
+    }
+    return false;
   }
 }
 
 
 const bricks = [];
+
 class Brick {
   constructor(Stage) {
     this.stage = Stage;
     this.isImmobile = false;
-    this.shape = BRICK_SHAPES[Math.floor(Math.random() * BRICK_SHAPES.length)];
-    this.x = Math.floor(Math.random() * this.stage.width);
-    this.y = this.stage.height - 1;
-    this.z = Math.floor(Math.random() * this.stage.depth);
     this.color = 0xff0000;
-    this.mounted = false;
     this.id = Math.ceil(Math.random() * 100000000000000000);
-    this.threeObjectGroup = new THREE.Group();
-    this.createThreeObjectGroup();
+    this.cubes = [];
+    const shape = BRICK_SHAPES[Math.floor(Math.random() * BRICK_SHAPES.length)];
+    this.mount(
+      shape,
+      {
+        x: Math.floor(Math.random() * this.stage.width),
+        y: this.stage.height - 1,
+        z: Math.floor(Math.random() * this.stage.depth),
+      }
+    );
   }
 
   makeImmobile() {
@@ -95,87 +106,99 @@ class Brick {
 
   moveLeft() {
     if (this.isImmobile) return;
-    this.threeObjectGroup.position.x -= 1;
     this.x -= 1;
   }
 
   moveRight() {
     if (this.isImmobile) return;
-    this.threeObjectGroup.position.x += 1;
     this.x += 1;
   }
 
   moveDown() {
     if (this.isImmobile) return;
     this.clearFromStage();
-    this.y -= 1;
-    const isColliding = this.checkForCollision();
+    const newPosition = this.cubes.map(cube => [
+      cube.position.x,
+      cube.position.y - 1,
+      cube.position.z,
+    ]);
+    const isColliding = this.checkForCollision(newPosition);
     if(isColliding) {
-      this.y += 1;
       this.makeImmobile();
     } else {
-      this.threeObjectGroup.position.y -= 1;
+      this.applyNewPosition(newPosition);
     }
     this.updateStage();
-    if (this.y === 0) {
-      this.makeImmobile();
-    }
   }
 
-  checkForCollision() {
+  applyNewPosition(newPosition) {
+    this.cubes.forEach((cube, index) => {
+      cube.position.x = newPosition[index][0];
+      cube.position.y = newPosition[index][1];
+      cube.position.z = newPosition[index][2];
+    });
+  }
+
+  checkForCollision(newPosition) {
     let isColliding = false
-    for (let x = 0; x < this.shape.length; x++) {
-      for (let y = 0; y < this.shape[x].length; y++) {
-        if (this.shape[x][y] === 1) {
-          if (this.stage.isFilledCube(this.x + x, this.y + y, this.z)) {
-            isColliding = true;
-          }
-        }
+    newPosition.forEach((position) => {
+      if (this.stage.isFilledCube(position[0], position[1], position[2])) {
+        isColliding = true;
       }
-    }
-    console.log(isColliding)
+    });
     return isColliding;
   }
 
-  clearFromStage() {
-    for (let x = 0; x < this.shape.length; x++) {
-      for (let y = 0; y < this.shape[x].length; y++) {
-        if (this.shape[x][y] === 1) {
-          this.stage.setEmptyCube(this.x + x, this.y + y, this.z);
-        }
-      }
+  rotate() {
+    if (this.isImmobile) return;
+    this.clearFromStage();
+    const pivot = this.cubes[0].position;
+    const newPosition = this.cubes.map(cube => {
+      const x = cube.position.x - pivot.x;
+      const y = cube.position.y - pivot.y;
+      return [
+        pivot.x - y,
+        pivot.y + x,
+        cube.position.z,
+      ];
+    });
+    const isColliding = this.checkForCollision(newPosition);
+    if(!isColliding) {
+      this.applyNewPosition(newPosition);
     }
+    this.updateStage();
+  }
+
+  clearFromStage() {
+    this.cubes.forEach((cube) => {
+      this.stage.setEmptyCube(cube.position.x, cube.position.y, cube.position.z);
+    });
   }
 
   updateStage() {
-    for (let x = 0; x < this.shape.length; x++) {
-      for (let y = 0; y < this.shape[x].length; y++) {
-        if (this.shape[x][y] === 1) {
-          this.stage.setFilledCube(this.x + x, this.y + y, this.z, this.id);
-        }
-      }
-    }
+    this.cubes.forEach((cube) => {
+      this.stage.setFilledCube(cube.position.x, cube.position.y, cube.position.z, this.id);
+    });
   }
 
-  createThreeObjectGroup() {
-    for (let x = 0; x < this.shape.length; x++) {
-      for (let y = 0; y < this.shape[x].length; y++) {
-        if (this.shape[x][y] === 1) {
+  mount(shape, startPosition) {
+    for (let x = 0; x < shape.length; x++) {
+      for (let y = 0; y < shape[x].length; y++) {
+        if (shape[x][y] === 1) {
           const geometry = new THREE.BoxGeometry(1, 1, 1);
           const material = new THREE.MeshBasicMaterial({
             color: this.color,
-            wireframe: true,
+            wireframe: false,
           });
           const cube = new THREE.Mesh(geometry, material);
-          cube.position.x = this.x + x;
-          cube.position.y = this.y + y;
-          cube.position.z = this.z;
-          this.threeObjectGroup.add(cube);
+          cube.position.x = startPosition.x + x;
+          cube.position.y = startPosition.y + y;
+          cube.position.z = startPosition.z;
+          this.cubes.push(cube);
+          scene.add(cube);
         }
       }
     }
-    scene.add(this.threeObjectGroup);
-    this.mounted = true;
   }
 }
 
@@ -199,7 +222,7 @@ const setupGame = () => {
 
   const stage = new Stage();
   renderFloor(stage);
-  bricks.push(new Brick(stage));
+  // bricks.push(new Brick(stage));
   // setInterval(() => {
   //   b1.moveDown();
   // }, 512)
@@ -217,8 +240,11 @@ const setupGame = () => {
 
   let counter = 0;
   const animateScene = () => {
-    if (counter % 20 === 0) {
+    if (counter % 2 === 0) {
       bricks.forEach((brick) => brick.moveDown());
+    }
+    if (counter % 50 === 0) {
+      bricks.forEach((brick) => brick.rotate());
     }
     if (counter % 180 === 0) {
       bricks.push(new Brick(stage));
@@ -233,19 +259,19 @@ const setupGame = () => {
 };
 
 const renderFloor = (stage) => {
-  const geometry = new THREE.BoxGeometry(1, 0.1, 1);
+  const geometry = new THREE.BoxGeometry(1, 1, 1);
   const material = new THREE.MeshBasicMaterial({
     color: 0x00ff00,
-    wireframe: true,
+    wireframe: false,
   });
 
-  for (let x = 0; x < stage.width; x++) {
+  for (let x = 0; x < stage.width + 16; x++) {
     for (let y = 0; y < 1; y++) {
-      for (let z = 0; z < stage.depth; z++) {
+      for (let z = 0; z < stage.depth + 16; z++) {
         const cube = new THREE.Mesh(geometry, material);
-        cube.position.x = x;
-        cube.position.y = y - 0.6;
-        cube.position.z = z;
+        cube.position.x = x - 8;
+        cube.position.y = y;
+        cube.position.z = z - 8;
         scene.add(cube);
       }
     }

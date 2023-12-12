@@ -2,12 +2,29 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+import { HBAOPass } from 'three/addons/postprocessing/HBAOPass.js';
+import { SSAOPass } from 'three/addons/postprocessing/SSAOPass.js';
+import { SAOPass } from 'three/addons/postprocessing/SAOPass.js';
 import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
 import { RGBShiftShader } from "three/addons/shaders/RGBShiftShader.js";
+import { DotScreenShader } from "three/addons/shaders/DotScreenShader.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
-import { BokehPass } from "three/addons/postprocessing/BokehPass.js";
+// import { BokehPass } from "three/addons/postprocessing/BokehPass.js";
+import { ClearPass } from "three/addons/postprocessing/ClearPass.js";
+import { HalftonePass } from 'three/addons/postprocessing/HalftonePass.js';
+import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 
 let renderer, camera, controls, scene, composer;
+
+function generatePastelColor() {
+  const hue = Math.random();
+  const saturation = 1;
+  const lightness = 0.5;
+  // return new THREE.Color().setHSL(1.0, 1,1);
+  const color = new THREE.Color().setHSL(hue, saturation, lightness);
+  return color;
+}
+
 
 const BRICK_SHAPES = [
   [
@@ -35,24 +52,24 @@ const BRICK_SHAPES = [
 
 class Stage {
   constructor() {
-    this.height = 24;
+    this.height = 32;
     this.width = 12;
     this.depth = 12;
     this.cubeSize = 64;
-    this.padding = 4
     this.init();
   }
 
   init() {
     this.cubes = [];
-    for (let x = 0; x < this.width + this.padding; x++) {
+    for (let x = 0; x < this.width; x++) {
       this.cubes[x] = [];
-      for (let y = 0; y < this.height + this.padding; y++) {
+      for (let y = 0; y < this.height; y++) {
         this.cubes[x][y] = [];
-        for (let z = 0; z < this.depth + this.padding; z++) {
-          this.cubes[x][y][z] = 0;
+        for (let z = 0; z < this.depth; z++) {
           if (y === 0) {
             this.cubes[x][y][z] = 1;
+          } else {
+            this.cubes[x][y][z] = 0;
           }
         }
       }
@@ -86,18 +103,28 @@ class Brick {
   constructor(Stage) {
     this.stage = Stage;
     this.isImmobile = false;
-    this.color = 0xff0000;
+    this.color = generatePastelColor();
     this.id = Math.ceil(Math.random() * 100000000000000000);
     this.cubes = [];
     const shape = BRICK_SHAPES[Math.floor(Math.random() * BRICK_SHAPES.length)];
     this.mount(
       shape,
       {
-        x: Math.floor(Math.random() * this.stage.width),
+        x: Math.floor(Math.random() * (this.stage.width - 3)),
         y: this.stage.height - 1,
         z: Math.floor(Math.random() * this.stage.depth),
       }
     );
+  }
+  
+  getBox(color) {
+    const geometry = new THREE.BoxGeometry(1, 1, 1).scale(0.9, 0.9, 0.9);
+    const material = new THREE.MeshBasicMaterial({
+      color: color,
+      wireframe: false,
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    return mesh;
   }
 
   makeImmobile() {
@@ -123,8 +150,12 @@ class Brick {
       cube.position.z,
     ]);
     const isColliding = this.checkForCollision(newPosition);
-    if(isColliding) {
+    if (isColliding) {
       this.makeImmobile();
+      this.cubes.forEach((cube) => {
+        cube.geometry.scale(1.1, 1.1, 1.1);
+        cube.material.color = new THREE.Color().setHSL(1.0, 1,1);
+      })
     } else {
       this.applyNewPosition(newPosition);
     }
@@ -163,7 +194,7 @@ class Brick {
       ];
     });
     const isColliding = this.checkForCollision(newPosition);
-    if(!isColliding) {
+    if (!isColliding) {
       this.applyNewPosition(newPosition);
     }
     this.updateStage();
@@ -185,16 +216,12 @@ class Brick {
     for (let x = 0; x < shape.length; x++) {
       for (let y = 0; y < shape[x].length; y++) {
         if (shape[x][y] === 1) {
-          const geometry = new THREE.BoxGeometry(1, 1, 1);
-          const material = new THREE.MeshBasicMaterial({
-            color: this.color,
-            wireframe: false,
-          });
-          const cube = new THREE.Mesh(geometry, material);
+          const cube = this.getBox(this.color);
           cube.position.x = startPosition.x + x;
           cube.position.y = startPosition.y + y;
           cube.position.z = startPosition.z;
           this.cubes.push(cube);
+    
           scene.add(cube);
         }
       }
@@ -205,50 +232,202 @@ class Brick {
 const setupGame = () => {
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(window.devicePixelRatio);
   document.body.appendChild(renderer.domElement);
+  
+  const width = window.innerWidth;
+  const height = window.innerHeight;
 
   camera = new THREE.PerspectiveCamera(
     60,
-    window.innerWidth / window.innerHeight,
-    0.0001,
-    100,
+    width / height,
+    0.1,
+    1000,
   );
-  camera.position.z = 2;
-  camera.position.y = 1;
+  
+  camera.position.x = 30;
+  camera.position.y = 30;
+  camera.position.z = 30;
+  
 
   controls = new OrbitControls(camera, renderer.domElement);
   controls.update();
+  controls.autoRotate = true;
+  controls.autoRotateSpeed = 0.5;
   scene = new THREE.Scene();
+  
+  // Add ambient light to the scene
+  // const ambientLight = new THREE.AmbientLight(0xffffff, 2);
+  // scene.add(ambientLight);
 
+
+
+  // Add directional lights to the scene
+  // const lightColorCyan = 0x00ffff;
+  // const lightColorMagenta = 0xff00ff;
+  // const lightColorYellow = 0xffff00;
+
+  // const lightDistance = 10;
+  // const angleOffset = Math.PI / 3; // 120 degrees in radians
+
+  // const directionalLightCyan = new THREE.DirectionalLight(lightColorCyan, 3);
+  // directionalLightCyan.position.set(
+  //   10,30,30
+  // );
+  // scene.add(directionalLightCyan);
+
+  // const directionalLightMagenta = new THREE.DirectionalLight(lightColorMagenta, 3);
+  // directionalLightMagenta.position.set(
+  //   -30,30,-30
+  // );
+  // scene.add(directionalLightMagenta);
+
+  // const directionalLightYellow = new THREE.DirectionalLight(lightColorYellow, 3);
+  // directionalLightYellow.position.set(
+  //   30,30,-30
+  // );
+  // scene.add(directionalLightYellow);
+  // const helper = new THREE.DirectionalLightHelper( directionalLightCyan, 5 );
+  // const helper1 = new THREE.DirectionalLightHelper( directionalLightMagenta, 5 );
+  // const helper2 = new THREE.DirectionalLightHelper( directionalLightYellow, 5);
+  // scene.add( helper );
+  // scene.add( helper1 );
+  // scene.add( helper2 );
+  
+  // Set the logarithmic depth buffer to true to fix artifacts at far distances
+  // renderer.logarithmicDepthBuffer = true;
+  
   const stage = new Stage();
   renderFloor(stage);
-  // bricks.push(new Brick(stage));
-  // setInterval(() => {
-  //   b1.moveDown();
-  // }, 512)
-  // const geometry = new THREE.PlaneGeometry(1, 1, 8, 8);
-  // geometry.rotateX(-Math.PI / 2);
-  // const material = new THREE.MeshBasicMaterial({
-  //   color: 0xcd3d3d3,
-  //   wireframe: true,
-  // });
-  // const plane = new THREE.Mesh(geometry, material);
-  // scene.add(plane);
-
+  controls.target.set(stage.width / 2 - 0.5, 16, stage.depth / 2 - 0.5);
+  
   composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
+  
+  // const effect2 = new ShaderPass( RGBShiftShader );
+  // effect2.uniforms[ 'amount' ].value = 0.0024;
+  // composer.addPass( effect2 );
+
+  
+  const hbaoPass = new HBAOPass( scene, camera, width, height );
+  hbaoPass.output = HBAOPass.OUTPUT.Default; // Changed from Denoise to Default to fix color visibility issue
+  composer.addPass( hbaoPass );
+  
+  const effect3 = new ShaderPass( DotScreenShader );
+  effect3.uniforms[ 'scale' ].value = 8;
+  // composer.addPass( effect3 );
+
+  const params = {
+    shape: 4,
+    radius: 6,
+    rotateR: Math.PI / 12,
+    rotateB: Math.PI / 12 * 2,
+    rotateG: Math.PI / 12 * 3,
+    scatter: 0.1,
+    blending: 0.5,
+    blendingMode: 1,
+    greyscale: false,
+    disable: false
+  };
+  const halftonePass = new HalftonePass( window.innerWidth, window.innerHeight, params );
+  composer.addPass( halftonePass );
+  
+  // const saoPass = new SAOPass( scene, camera );
+  // composer.addPass( saoPass );
+
+  // const outputPass = new OutputPass();
+  // composer.addPass( outputPass );
+
+  const hbaoParameters = {
+    radius: 2.,
+    distanceExponent: 1.,
+    bias: 0.01,
+    samples: 24,
+  };
+  const pdParameters = {
+    lumaPhi: 100.,
+    depthPhi: 2.,
+    normalPhi: 3.,
+    radius: 10.,
+    rings: 4,
+    samples: 12,
+  };
+
+  hbaoPass.updateHbaoMaterial( hbaoParameters );
+  hbaoPass.updatePdMaterial( pdParameters );
+
+
+
+
+
+// Init gui
+// GUI
+
+const controller = {
+  radius: halftonePass.uniforms[ 'radius' ].value,
+  rotateR: halftonePass.uniforms[ 'rotateR' ].value / ( Math.PI / 180 ),
+  rotateG: halftonePass.uniforms[ 'rotateG' ].value / ( Math.PI / 180 ),
+  rotateB: halftonePass.uniforms[ 'rotateB' ].value / ( Math.PI / 180 ),
+  scatter: halftonePass.uniforms[ 'scatter' ].value,
+  shape: halftonePass.uniforms[ 'shape' ].value,
+  greyscale: halftonePass.uniforms[ 'greyscale' ].value,
+  blending: halftonePass.uniforms[ 'blending' ].value,
+  blendingMode: halftonePass.uniforms[ 'blendingMode' ].value,
+  disable: halftonePass.uniforms[ 'disable' ].value
+};
+
+function onGUIChange() {
+
+  // update uniforms
+  halftonePass.uniforms[ 'radius' ].value = controller.radius;
+  halftonePass.uniforms[ 'rotateR' ].value = controller.rotateR * ( Math.PI / 180 );
+  halftonePass.uniforms[ 'rotateG' ].value = controller.rotateG * ( Math.PI / 180 );
+  halftonePass.uniforms[ 'rotateB' ].value = controller.rotateB * ( Math.PI / 180 );
+  halftonePass.uniforms[ 'scatter' ].value = controller.scatter;
+  halftonePass.uniforms[ 'shape' ].value = controller.shape;
+  halftonePass.uniforms[ 'greyscale' ].value = controller.greyscale;
+  halftonePass.uniforms[ 'blending' ].value = controller.blending;
+  halftonePass.uniforms[ 'blendingMode' ].value = controller.blendingMode;
+  halftonePass.uniforms[ 'disable' ].value = controller.disable;
+
+}
+
+const gui = new GUI();
+gui.add( controller, 'shape', { 'Dot': 1, 'Ellipse': 2, 'Line': 3, 'Square': 4 } ).onChange( onGUIChange );
+gui.add( controller, 'radius', 1, 25 ).onChange( onGUIChange );
+gui.add( controller, 'rotateR', 0, 90 ).onChange( onGUIChange );
+gui.add( controller, 'rotateG', 0, 90 ).onChange( onGUIChange );
+gui.add( controller, 'rotateB', 0, 90 ).onChange( onGUIChange );
+gui.add( controller, 'scatter', 0, 1, 0.01 ).onChange( onGUIChange );
+gui.add( controller, 'greyscale' ).onChange( onGUIChange );
+gui.add( controller, 'blending', 0, 1, 0.01 ).onChange( onGUIChange );
+gui.add( controller, 'blendingMode', { 'Linear': 1, 'Multiply': 2, 'Add': 3, 'Lighter': 4, 'Darker': 5 } ).onChange( onGUIChange );
+gui.add( controller, 'disable' ).onChange( onGUIChange );
+
+
 
   let counter = 0;
+  let frq = 2
+  let bricksNum = 0;
   const animateScene = () => {
-    if (counter % 2 === 0) {
+    if (counter % frq === 0) {
       bricks.forEach((brick) => brick.moveDown());
     }
     if (counter % 50 === 0) {
-      bricks.forEach((brick) => brick.rotate());
+      // bricks.forEach((brick) => brick.rotate());
     }
-    if (counter % 180 === 0) {
+    if (counter % (frq * 6) === 0) {
       bricks.push(new Brick(stage));
+      bricksNum += 1;
     }
+    // if (counter % 120 === 0) {
+    //   if (frq > 2) {
+    //     frq -= 1
+    //   }
+    // }
+    // camera.position.y = (bricksNum/(stage.width*stage.depth/8)) + 32;
+    // controls.target.y = (bricksNum/(stage.width*stage.depth/2)) + 16;
+    camera.updateProjectionMatrix();
     requestAnimationFrame(animateScene);
     controls.update();
     composer.render();
@@ -258,24 +437,40 @@ const setupGame = () => {
   animateScene();
 };
 
-const renderFloor = (stage) => {
-  const geometry = new THREE.BoxGeometry(1, 1, 1);
-  const material = new THREE.MeshBasicMaterial({
-    color: 0x00ff00,
-    wireframe: false,
-  });
 
-  for (let x = 0; x < stage.width + 16; x++) {
-    for (let y = 0; y < 1; y++) {
-      for (let z = 0; z < stage.depth + 16; z++) {
-        const cube = new THREE.Mesh(geometry, material);
-        cube.position.x = x - 8;
-        cube.position.y = y;
-        cube.position.z = z - 8;
-        scene.add(cube);
-      }
-    }
-  }
+
+const renderFloor = (stage) => {
+  const padding = 2
+  // create plane for floor
+  const w = stage.width + padding*2;
+  const d = stage.depth + padding*2;
+  const floorGeometry = new THREE.PlaneGeometry(
+    w,d,w,d
+  );
+  const floorMaterial = new THREE.MeshBasicMaterial({ color: 0xefefef, wireframe: true, castShadow: false, receiveShadow: true });
+  const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+  floor.rotation.x = -Math.PI / 2;
+  floor.position.x = w/2 - padding - 0.5;
+  floor.position.z = d/2 - padding - 0.5;
+  floor.position.y = 0.5;
+  scene.add(floor);
+  // const geometry = new THREE.BoxGeometry(1, 1, 1);
+  // const material = new THREE.MeshBasicMaterial({
+  //   color: 0x00ff00,
+  //   wireframe: false,
+  // });
+
+  // for (let x = 0; x < stage.width + 16; x++) {
+  //   for (let y = 0; y < 1; y++) {
+  //     for (let z = 0; z < stage.depth + 16; z++) {
+  //       const cube = new THREE.Mesh(geometry, material);
+  //       cube.position.x = x - 8;
+  //       cube.position.y = y;
+  //       cube.position.z = z - 8;
+  //       scene.add(cube);
+  //     }
+  //   }
+  // }
 }
 
 

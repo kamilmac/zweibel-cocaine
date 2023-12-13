@@ -56,6 +56,7 @@ class Stage {
     this.width = 12;
     this.depth = 12;
     this.cubeSize = 64;
+    this.highestCube = 0;
     this.init();
   }
 
@@ -93,6 +94,12 @@ class Stage {
       return this.cubes[x][y][z] !== 0;
     }
     return false;
+  }
+
+  updateHighestCube(y) {
+    if (y > this.highestCube) {
+      this.highestCube = y;
+    }
   }
 }
 
@@ -154,7 +161,8 @@ class Brick {
       this.makeImmobile();
       this.cubes.forEach((cube) => {
         cube.geometry.scale(1.1, 1.1, 1.1);
-        cube.material.color = new THREE.Color().setHSL(1.0, 1,1);
+        cube.material.color = new THREE.Color().setHSL(1, 0, 0.9);
+        this.stage.updateHighestCube(cube.position.y);
       })
     } else {
       this.applyNewPosition(newPosition);
@@ -230,7 +238,12 @@ class Brick {
 }
 
 const setupGame = () => {
-  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer = new THREE.WebGLRenderer({
+    powerPreference: "high-performance",
+    antialias: false,
+    stencil: false,
+    depth: false
+  });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(window.devicePixelRatio);
   document.body.appendChild(renderer.domElement);
@@ -244,10 +257,6 @@ const setupGame = () => {
     0.1,
     1000,
   );
-  
-  camera.position.x = 30;
-  camera.position.y = 30;
-  camera.position.z = 30;
   
 
   controls = new OrbitControls(camera, renderer.domElement);
@@ -298,8 +307,16 @@ const setupGame = () => {
   // renderer.logarithmicDepthBuffer = true;
   
   const stage = new Stage();
+  
   renderFloor(stage);
-  controls.target.set(stage.width / 2 - 0.5, 16, stage.depth / 2 - 0.5);
+  camera.position.x = 30;
+  camera.position.y = 16;
+  camera.position.z = 30;
+
+  camera.position.x = stage.width / 2 - 0.5;
+  camera.position.y = 30;
+  camera.position.z = stage.depth / 2 - 0.5;
+  
   
   composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
@@ -313,17 +330,17 @@ const setupGame = () => {
   hbaoPass.output = HBAOPass.OUTPUT.Default; // Changed from Denoise to Default to fix color visibility issue
   composer.addPass( hbaoPass );
   
-  const effect3 = new ShaderPass( DotScreenShader );
-  effect3.uniforms[ 'scale' ].value = 8;
+  // const effect3 = new ShaderPass( DotScreenShader );
+  // effect3.uniforms[ 'scale' ].value = 8;
   // composer.addPass( effect3 );
 
   const params = {
     shape: 4,
-    radius: 6,
+    radius: 2,
     rotateR: Math.PI / 12,
     rotateB: Math.PI / 12 * 2,
     rotateG: Math.PI / 12 * 3,
-    scatter: 0.1,
+    scatter: 0.5,
     blending: 0.5,
     blendingMode: 1,
     greyscale: false,
@@ -343,6 +360,7 @@ const setupGame = () => {
     distanceExponent: 1.,
     bias: 0.01,
     samples: 24,
+    halfRes: true,
   };
   const pdParameters = {
     lumaPhi: 100.,
@@ -413,7 +431,7 @@ gui.add( controller, 'disable' ).onChange( onGUIChange );
     if (counter % frq === 0) {
       bricks.forEach((brick) => brick.moveDown());
     }
-    if (counter % 50 === 0) {
+    if (counter % 13 === 0) {
       // bricks.forEach((brick) => brick.rotate());
     }
     if (counter % (frq * 6) === 0) {
@@ -425,13 +443,19 @@ gui.add( controller, 'disable' ).onChange( onGUIChange );
     //     frq -= 1
     //   }
     // }
-    // camera.position.y = (bricksNum/(stage.width*stage.depth/8)) + 32;
     // controls.target.y = (bricksNum/(stage.width*stage.depth/2)) + 16;
+    // controls.target.set(stage.width / 2 - 0.5, 8, stage.depth / 2 - 0.5);
+    // camera.focalLength = 1;
+    camera.fov = 35;
+    const newCameraPosition = new THREE.Vector3(camera.position.x, 24 + stage.highestCube*0.8, camera.position.z);
+    camera.position.lerp(newCameraPosition, 0.04);
+    controls.target.lerp(new THREE.Vector3(stage.width / 2 - 0.5, 0 + stage.highestCube * 0.4, stage.depth / 2 - 0.5), 0.08);
+
     camera.updateProjectionMatrix();
-    requestAnimationFrame(animateScene);
     controls.update();
     composer.render();
     counter += 1;
+    requestAnimationFrame(animateScene);
   };
 
   animateScene();
@@ -440,7 +464,7 @@ gui.add( controller, 'disable' ).onChange( onGUIChange );
 
 
 const renderFloor = (stage) => {
-  const padding = 2
+  const padding = 1
   // create plane for floor
   const w = stage.width + padding*2;
   const d = stage.depth + padding*2;
@@ -454,6 +478,7 @@ const renderFloor = (stage) => {
   floor.position.z = d/2 - padding - 0.5;
   floor.position.y = 0.5;
   scene.add(floor);
+
   // const geometry = new THREE.BoxGeometry(1, 1, 1);
   // const material = new THREE.MeshBasicMaterial({
   //   color: 0x00ff00,

@@ -1,40 +1,16 @@
-const playerColors = [
-  '#FF0000', // Red
-  '#00FF00', // Green
-  '#0000FF', // Blue
-  '#FFFF00', // Yellow
-  '#FF00FF', // Magenta
-  '#00FFFF', // Cyan
-  '#800000', // Maroon
-  '#808000', // Olive
-  '#008000', // Dark Green
-  '#800080', // Purple
-  '#008080', // Teal
-  '#000080', // Navy
-  '#FFA500', // Orange
-  '#A52A2A', // Brown
-  '#FFC0CB', // Pink
-  '#A9A9A9',  // Dark Gray
-];
-
-let playerColor = '';
-const getRandomColor = () => {
-  const len = playerColors.length;
-  const rand = Math.floor(Math.random() * len);
-  playerColor = playerColors[rand];
-  return playerColor;
-}
-
-const content = document.getElementById('content');
-content.style.backgroundColor = getRandomColor();
-
 const protocol = window.location.protocol.includes('https') ? 'wss://' : 'ws://';
 const wsEndpoint = protocol + window.location.host + '/baby';
 
 const ws = new WebSocket(wsEndpoint);
 
+
+let id = null;
+let col = null;
+
 ws.onopen = function (event) {
   console.log("Connection opened");
+  id = Math.random().toString(36).substring(8);
+  ws.send(`register_player_${id}`)
 };
 
 ws.onerror = function (error) {
@@ -45,48 +21,88 @@ ws.onclose = function (event) {
   console.log("Connection closed");
 };
 
-let isTouching = false;
-content.addEventListener('pointerdown', () => {
-  isTouching = true;
+ws.onmessage = function (event) {
+  console.log("Message received: " + event.data);
+  if (event.data.startsWith('color')) {
+    const _id = event.data.split('_')[1];
+    if (_id === id) {
+      col = event.data.split('_')[2];
+      document.getElementById('content').style.backgroundColor = col;
+      console.log('color', col);
+    }
+  }
+}
+
+const up = document.getElementById('up');
+const down = document.getElementById('down');
+const left = document.getElementById('left');
+const right = document.getElementById('right');
+const rotate = document.getElementById('rotate');
+
+up.addEventListener('click', () => {
+  ws.send(`swipe_up_${id}`);
 });
 
-content.addEventListener('pointerup', () => {
-  isTouching = false;
+down.addEventListener('click', () => {
+  ws.send(`swipe_down_${id}`);
 });
 
-let rotationRate = [0, 0, 0];
-let acceleration = [0, 0, 0];
-let eulerRotation = [0, 0, 0];
-
-const id = String(Math.random() * 100000000000000000);
-
-const SAMPLE_RATE = 2;
-let counter = 0
-
-window.addEventListener("deviceorientation", (event) => {
-  eulerRotation[0] = event.alpha
-  eulerRotation[1] = event.beta
-  eulerRotation[2] = event.gamma
-})
-
-window.addEventListener("devicemotion", (event) => {
-  acceleration[0] = event.acceleration.x
-  acceleration[1] = event.acceleration.y
-  acceleration[2] = event.acceleration.z
-  rotationRate[0] = event.rotationRate.alpha
-  rotationRate[1] = event.rotationRate.beta
-  rotationRate[2] = event.rotationRate.gamma
-  ws.send(JSON.stringify({
-    id,
-    int: event.interval,
-    on: isTouching,
-    col: playerColor,
-    acc: acceleration,
-    rot: rotationRate,
-    eur: eulerRotation,
-  }))
+left.addEventListener('click', () => {
+  ws.send(`swipe_left_${id}`);
 });
 
-window.setTimeout(() => {
-  ws.send('hello daddy')
-}, 1000)
+right.addEventListener('click', () => {
+  ws.send(`swipe_right_${id}`);
+});
+
+rotate.addEventListener('click', () => {
+  ws.send(`rotate_${id}`);
+});
+
+document.ondblclick = function(e) {
+  e.preventDefault();
+}
+
+
+// circle.addEventListener('touchstart', (event) => {
+//   startX = event.touches[0].clientX;
+//   startY = event.touches[0].clientY;
+// });
+
+// circle.addEventListener('touchend', (event) => {
+//   const endX = event.changedTouches[0].clientX;
+//   const endY = event.changedTouches[0].clientY;
+
+//   const deltaX = endX - startX;
+//   const deltaY = endY - startY;
+
+//   if (Math.abs(deltaX) > Math.abs(deltaY)) {
+//     if (deltaX > 0) {
+//       console.log('Swipe right');
+//       ws.send(`swipe_right_${id}`);
+//     } else {
+//       console.log('Swipe left');
+//       ws.send(`swipe_left_${id}`);
+//     }
+//   } else {
+//     if (deltaY > 0) {
+//       console.log('Swipe down');
+//       ws.send(`swipe_down_${id}`);
+//     } else {
+//       console.log('Swipe up');
+//       ws.send(`swipe_up_${id}`);
+//     }
+//   }
+// });
+
+
+
+// there is no communication in the team
+// you spend most of the time on meetings and documentation and processes and same for Nevena
+
+// I have 6 years of expereicne with most of the systems in Volumental and wrote big part of all FE
+// I'm open to help and share knowldge but i can also be critical of various things
+
+// Many things changed and Your role rebalance the team dynamics and now it seems like we do not have much of a democratic process
+// but things are mostly set by design
+

@@ -3,23 +3,33 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { HBAOPass } from 'three/addons/postprocessing/HBAOPass.js';
-import { SSAOPass } from 'three/addons/postprocessing/SSAOPass.js';
-import { SAOPass } from 'three/addons/postprocessing/SAOPass.js';
-import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
-import { RGBShiftShader } from "three/addons/shaders/RGBShiftShader.js";
-import { DotScreenShader } from "three/addons/shaders/DotScreenShader.js";
-import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
-// import { BokehPass } from "three/addons/postprocessing/BokehPass.js";
-import { ClearPass } from "three/addons/postprocessing/ClearPass.js";
+
 import { HalftonePass } from 'three/addons/postprocessing/HalftonePass.js';
-import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
+// import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { Stage } from "/gl6/stage.js";
 import { Brick } from "/gl6/brick.js";
+import Lifeforms from "lifeforms";
+
+const lf = new Lifeforms();
+lf
+  // .oscillate({ speed: 20, space: 'xyz', distance: 0.001 })
+  // .oscillate(0.001, 'xyz')
+  .randomWalk()
+  .scaleBy(0.1);
 
 let renderer, camera, controls, scene, composer;
 
 
 const bricks = [];
+
+function generatePastelColor() {
+  const hue = Math.random();
+  const saturation = 1;
+  const lightness = 0.5;
+  const color = new THREE.Color().setHSL(hue, saturation, lightness);
+  return color;
+}
+
 
 const setupGame = () => {
   renderer = new THREE.WebGLRenderer({
@@ -45,79 +55,25 @@ const setupGame = () => {
 
   controls = new OrbitControls(camera, renderer.domElement);
   controls.update();
-  controls.autoRotate = true;
-  controls.autoRotateSpeed = 0.5;
+  // controls.autoRotate = true;
+  // controls.autoRotateSpeed = 0.5;
   scene = new THREE.Scene();
-  
-  // Add ambient light to the scene
-  // const ambientLight = new THREE.AmbientLight(0xffffff, 2);
-  // scene.add(ambientLight);
-
-
-
-  // Add directional lights to the scene
-  // const lightColorCyan = 0x00ffff;
-  // const lightColorMagenta = 0xff00ff;
-  // const lightColorYellow = 0xffff00;
-
-  // const lightDistance = 10;
-  // const angleOffset = Math.PI / 3; // 120 degrees in radians
-
-  // const directionalLightCyan = new THREE.DirectionalLight(lightColorCyan, 3);
-  // directionalLightCyan.position.set(
-  //   10,30,30
-  // );
-  // scene.add(directionalLightCyan);
-
-  // const directionalLightMagenta = new THREE.DirectionalLight(lightColorMagenta, 3);
-  // directionalLightMagenta.position.set(
-  //   -30,30,-30
-  // );
-  // scene.add(directionalLightMagenta);
-
-  // const directionalLightYellow = new THREE.DirectionalLight(lightColorYellow, 3);
-  // directionalLightYellow.position.set(
-  //   30,30,-30
-  // );
-  // scene.add(directionalLightYellow);
-  // const helper = new THREE.DirectionalLightHelper( directionalLightCyan, 5 );
-  // const helper1 = new THREE.DirectionalLightHelper( directionalLightMagenta, 5 );
-  // const helper2 = new THREE.DirectionalLightHelper( directionalLightYellow, 5);
-  // scene.add( helper );
-  // scene.add( helper1 );
-  // scene.add( helper2 );
-  
-  // Set the logarithmic depth buffer to true to fix artifacts at far distances
-  // renderer.logarithmicDepthBuffer = true;
   
   const stage = new Stage();
   
   renderFloor(stage);
-  camera.position.x = 30;
-  camera.position.y = 16;
-  camera.position.z = 30;
 
   camera.position.x = stage.width / 2 - 0.5;
   camera.position.y = 30;
-  camera.position.z = stage.depth / 2 - 0.5;
-  
+  camera.position.z = 15;
   
   composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
   
-  // const effect2 = new ShaderPass( RGBShiftShader );
-  // effect2.uniforms[ 'amount' ].value = 0.0024;
-  // composer.addPass( effect2 );
-
-  
   const hbaoPass = new HBAOPass( scene, camera, width, height );
   hbaoPass.output = HBAOPass.OUTPUT.Default; // Changed from Denoise to Default to fix color visibility issue
   composer.addPass( hbaoPass );
-  
-  // const effect3 = new ShaderPass( DotScreenShader );
-  // effect3.uniforms[ 'scale' ].value = 8;
-  // composer.addPass( effect3 );
-
+ 
   const params = {
     shape: 4,
     radius: 2,
@@ -159,57 +115,8 @@ const setupGame = () => {
   hbaoPass.updatePdMaterial( pdParameters );
 
 
-
-
-
-// Init gui
-// GUI
-
-const controller = {
-  radius: halftonePass.uniforms[ 'radius' ].value,
-  rotateR: halftonePass.uniforms[ 'rotateR' ].value / ( Math.PI / 180 ),
-  rotateG: halftonePass.uniforms[ 'rotateG' ].value / ( Math.PI / 180 ),
-  rotateB: halftonePass.uniforms[ 'rotateB' ].value / ( Math.PI / 180 ),
-  scatter: halftonePass.uniforms[ 'scatter' ].value,
-  shape: halftonePass.uniforms[ 'shape' ].value,
-  greyscale: halftonePass.uniforms[ 'greyscale' ].value,
-  blending: halftonePass.uniforms[ 'blending' ].value,
-  blendingMode: halftonePass.uniforms[ 'blendingMode' ].value,
-  disable: halftonePass.uniforms[ 'disable' ].value
-};
-
-function onGUIChange() {
-
-  // update uniforms
-  halftonePass.uniforms[ 'radius' ].value = controller.radius;
-  halftonePass.uniforms[ 'rotateR' ].value = controller.rotateR * ( Math.PI / 180 );
-  halftonePass.uniforms[ 'rotateG' ].value = controller.rotateG * ( Math.PI / 180 );
-  halftonePass.uniforms[ 'rotateB' ].value = controller.rotateB * ( Math.PI / 180 );
-  halftonePass.uniforms[ 'scatter' ].value = controller.scatter;
-  halftonePass.uniforms[ 'shape' ].value = controller.shape;
-  halftonePass.uniforms[ 'greyscale' ].value = controller.greyscale;
-  halftonePass.uniforms[ 'blending' ].value = controller.blending;
-  halftonePass.uniforms[ 'blendingMode' ].value = controller.blendingMode;
-  halftonePass.uniforms[ 'disable' ].value = controller.disable;
-
-}
-
-const gui = new GUI();
-gui.add( controller, 'shape', { 'Dot': 1, 'Ellipse': 2, 'Line': 3, 'Square': 4 } ).onChange( onGUIChange );
-gui.add( controller, 'radius', 1, 25 ).onChange( onGUIChange );
-gui.add( controller, 'rotateR', 0, 90 ).onChange( onGUIChange );
-gui.add( controller, 'rotateG', 0, 90 ).onChange( onGUIChange );
-gui.add( controller, 'rotateB', 0, 90 ).onChange( onGUIChange );
-gui.add( controller, 'scatter', 0, 1, 0.01 ).onChange( onGUIChange );
-gui.add( controller, 'greyscale' ).onChange( onGUIChange );
-gui.add( controller, 'blending', 0, 1, 0.01 ).onChange( onGUIChange );
-gui.add( controller, 'blendingMode', { 'Linear': 1, 'Multiply': 2, 'Add': 3, 'Lighter': 4, 'Darker': 5 } ).onChange( onGUIChange );
-gui.add( controller, 'disable' ).onChange( onGUIChange );
-
-
-
   let counter = 0;
-  let frq = 2
+  let frq = 10
   let bricksNum = 0;
   const animateScene = () => {
     if (counter % frq === 0) {
@@ -218,20 +125,23 @@ gui.add( controller, 'disable' ).onChange( onGUIChange );
     if (counter % 13 === 0) {
       // bricks.forEach((brick) => brick.rotate());
     }
-    if (counter % (frq * 6) === 0) {
-      bricks.push(new Brick(stage, scene));
-      bricksNum += 1;
+    let playerAdded = false
+    if (counter % (frq * 10 ) === 0) {
+      PLAYERS.forEach((player) => {
+        if (!player.isDriving && !playerAdded) {
+          player.isDriving = true;
+          playerAdded = true
+          const brick = new Brick(stage, scene, player.id);
+          bricks.push(brick);
+        }
+      });
     }
-    // if (counter % 120 === 0) {
-    //   if (frq > 2) {
-    //     frq -= 1
-    //   }
-    // }
-    // controls.target.y = (bricksNum/(stage.width*stage.depth/2)) + 16;
-    // controls.target.set(stage.width / 2 - 0.5, 8, stage.depth / 2 - 0.5);
-    // camera.focalLength = 1;
+    const p = lf.get()
+    camera.position.x = stage.width / 2 - 0.5 + Math.sin(p[0]*10) * 3;
+    camera.position.z = 15 + Math.cos(p[2]*18) * 5;
+
     camera.fov = 35;
-    const newCameraPosition = new THREE.Vector3(camera.position.x, 24 + stage.highestCube*0.8, camera.position.z);
+    const newCameraPosition = new THREE.Vector3(camera.position.x, 32 + stage.highestCube*0.8, camera.position.z);
     camera.position.lerp(newCameraPosition, 0.04);
     controls.target.lerp(new THREE.Vector3(stage.width / 2 - 0.5, 0 + stage.highestCube * 0.4, stage.depth / 2 - 0.5), 0.08);
 
@@ -322,10 +232,74 @@ const renderFloor = (stage) => {
 
 
 
-// const protocol = window.location.protocol.includes('https') ? 'wss://' : 'ws://';
-// const wsEndpoint = protocol + window.location.host + '/daddy';
-// var ws = new WebSocket(wsEndpoint);
+const protocol = window.location.protocol.includes('https') ? 'wss://' : 'ws://';
+const wsEndpoint = protocol + window.location.host + '/daddy';
+const ws = new WebSocket(wsEndpoint);
 
+window.PLAYERS = [];
+let activePlayerIndex = 0;
+
+ws.onmessage = function(event) {
+  if (event.data.startsWith('register_player')) {
+    const color = generatePastelColor();
+    const player = {
+      id: '',
+      turns: 0,
+      color,
+      isDriving: false,
+      alive: true,
+    }
+    player.id = event.data.split('register_player_')[1];
+    ws.send(`color_${player.id}_#${color.getHexString()}`)
+    const playerDiv = document.createElement('div');
+    playerDiv.classList.add('player');
+    playerDiv.style.backgroundColor = color.getStyle();
+    document.querySelector('.players').appendChild(playerDiv);
+    console.log('registered', player);
+    PLAYERS.push(player);
+  } else if (event.data.startsWith('swipe_right')) {
+    const id = event.data.split('swipe_right_')[1];
+    const player = PLAYERS.find(p => p.id === id);
+    bricks.forEach((block) => {
+      if (block.playerId === id) {
+        block.moveRight();
+      }
+    })
+  } else if (event.data.startsWith('swipe_left')) {
+    const id = event.data.split('swipe_left_')[1];
+    const player = PLAYERS.find(p => p.id === id);
+    bricks.forEach((block) => {
+      if (block.playerId === id) {
+        block.moveLeft();
+      }
+    })
+  } else if (event.data.startsWith('swipe_down')) {
+    const id = event.data.split('swipe_down_')[1];
+    const player = PLAYERS.find(p => p.id === id);
+    bricks.forEach((block) => {
+      if (block.playerId === id) {
+        block.moveClose();
+      }
+    })
+  } else if (event.data.startsWith('swipe_up')) {
+    const id = event.data.split('swipe_up_')[1];
+    const player = PLAYERS.find(p => p.id === id);
+    bricks.forEach((block) => {
+      if (block.playerId === id) {
+        block.moveFar();
+      }
+    })
+  } else if (event.data.startsWith('rotate')) {
+    const id = event.data.split('rotate_')[1];
+    const player = PLAYERS.find(p => p.id === id);
+    bricks.forEach((block) => {
+      if (block.playerId === id) {
+        block.rotate();
+      }
+    })
+  }
+  console.log(event.data);
+};
 
 // const normalizeAcc = (acc) => {
 //   const x = acc[0] * acc[0] * acc[0] * 0.001;
@@ -336,27 +310,6 @@ const renderFloor = (stage) => {
 //   return [x, y, z];
 // };
 
-// ws.onmessage = function(event) {
-//   if (event.data === 'hello daddy') { return };
-//   const player = JSON.parse(event.data);
-
-//   let acc = player.acc;
-//   let rot = player.rot;
-//   if (!PLAYERS[player.id]) {
-//     PLAYERS[player.id] = player;
-//     return;
-//   }
-//   id = player.id;
-//   console.log(event.data)
-//   PLAYERS[player.id].on = player.on;
-//   PLAYERS[player.id].int = player.int;
-//   PLAYERS[player.id].acc[0] = acc[0]
-//   PLAYERS[player.id].acc[1] = acc[1]
-//   PLAYERS[player.id].acc[2] = acc[2]
-//   PLAYERS[player.id].rot[0] = rot[0]
-//   PLAYERS[player.id].rot[1] = rot[1]
-//   PLAYERS[player.id].rot[2] = rot[2]
-// };
 
 // const createRotationContainer = () => {
 //   const container = document.createElement('div');
@@ -394,3 +347,12 @@ const renderFloor = (stage) => {
 // , 50);
 
 setupGame();
+
+var qrcode = new QRCode(document.getElementById("qrcode"), {
+	text: window.location.origin,
+	width: 196,
+	height: 196,
+	colorDark : "#000000",
+	colorLight : "#ffffff",
+	correctLevel : QRCode.CorrectLevel.H
+});

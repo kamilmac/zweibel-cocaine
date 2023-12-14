@@ -24,20 +24,14 @@ const BRICK_SHAPES = [
   ],
 ];
 
-function generatePastelColor() {
-  const hue = Math.random();
-  const saturation = 1;
-  const lightness = 0.5;
-  const color = new THREE.Color().setHSL(hue, saturation, lightness);
-  return color;
-}
 
 export class Brick {
-  constructor(stage, scene) {
+  constructor(stage, scene, playerId) {
     this.stage = stage;
+    this.playerId = playerId;
     this.scene = scene;
     this.isImmobile = false;
-    this.color = generatePastelColor();
+    this.color = window.PLAYERS.find(player => player.id === this.playerId).color;
     this.id = Math.ceil(Math.random() * 100000000000000000);
     this.cubes = [];
     this.shadowPlanes = [];
@@ -64,6 +58,7 @@ export class Brick {
 
   makeImmobile() {
     this.isImmobile = true;
+    window.PLAYERS.find(player => player.id === this.playerId).isDriving = false;
     this.cubes.forEach((cube) => {
       this.stage.markAsImmobile(cube.position.x, cube.position.y, cube.position.z);
     });
@@ -72,14 +67,35 @@ export class Brick {
     })
   }
 
-  moveLeft() {
+  move(x, z) {
     if (this.isImmobile) return;
-    this.x -= 1;
+    this.clearFromStage();
+    const newPosition = this.cubes.map(cube => [
+      cube.position.x + x,
+      cube.position.y,
+      cube.position.z + z,
+    ]);
+    const isColliding = this.checkForWallCollision(newPosition);
+    if (!isColliding) {
+      this.applyNewPosition(newPosition);
+      this.updateStage();
+    }
+  }
+
+  moveLeft() {
+    this.move(-1, 0);
   }
 
   moveRight() {
-    if (this.isImmobile) return;
-    this.x += 1;
+    this.move(1, 0);
+  }
+
+  moveClose() {
+    this.move(0, 1);
+  }
+
+  moveFar() {
+    this.move(0, -1);
   }
 
   moveDown() {
@@ -114,7 +130,9 @@ export class Brick {
   }
 
   recalculateShadow() {
-    this.shadowPlanes.forEach((plane) => {
+    this.shadowPlanes.forEach((plane, index) => {
+      plane.position.x = this.cubes[index].position.x;
+      plane.position.z = this.cubes[index].position.z;
       const y = this.stage.getTopYInColumn(plane.position.x, plane.position.z);
       plane.position.y = y + 0.501
     })
@@ -130,17 +148,30 @@ export class Brick {
     return isColliding;
   }
 
+  checkForWallCollision(newPosition) {
+    let isColliding = false
+    newPosition.forEach((position) => {
+      if (position[0] < 0 || position[0] > this.stage.width - 1) {
+        isColliding = true;
+      }
+      if (position[2] < 0 || position[2] > this.stage.depth - 1) {
+        isColliding = true;
+      }
+    });
+    return isColliding;
+  }
+
   rotate() {
     if (this.isImmobile) return;
     this.clearFromStage();
-    const pivot = this.cubes[0].position;
+    const pivot = this.cubes[Math.ceil(this.cubes.length/2)].position;
     const newPosition = this.cubes.map(cube => {
       const x = cube.position.x - pivot.x;
-      const y = cube.position.y - pivot.y;
+      const z = cube.position.z - pivot.z;
       return [
-        pivot.x - y,
-        pivot.y + x,
-        cube.position.z,
+        pivot.x - z,
+        cube.position.y,
+        pivot.z + x,
       ];
     });
     const isColliding = this.checkForCollision(newPosition);

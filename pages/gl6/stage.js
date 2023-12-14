@@ -65,7 +65,7 @@ export class Stage {
 
   getTopYInColumn(x, z) {
     for (let y = this.height - 1; y > 0; y--) {
-      if (this.isFilledCube(x, y, z)) {
+      if (this.isImmobileCube(x, y, z)) {
         return y;
       }
     }

@@ -5,11 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>GL TEST</title>
     <base href="/"></base>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script type="importmap">
       {
         "imports": {
           "three": "https://unpkg.com/three@0.159/build/three.module.min.js",
-          "three/addons/": "https://unpkg.com/three@0.159/examples/jsm/"
+          "three/addons/": "https://unpkg.com/three@0.159/examples/jsm/",
+          "lifeforms": "./components/lifeforms.js"
         }
       }
     </script>
@@ -17,9 +19,32 @@
       body {
         margin: 0;
       }
+      #qrcode {
+        position: absolute;
+        padding: 9px;
+        background: white;
+        border-radius: 9px;
+        margin: 16px;
+      }
+      .players {
+        position: absolute;
+        display: inline-flex;
+        top: 16px;
+        left: 256px;
+        gap: 12px;
+      }
+      .player {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+      }
     </style>
   </head>
   <body>
+    <div id="qrcode"></div>
+    <div
+      class="players"
+    ></div>
     <script type="module" src="./gl6/index.js"></script>
   </body>
 </html>

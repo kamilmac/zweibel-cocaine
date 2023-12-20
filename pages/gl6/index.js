@@ -115,39 +115,14 @@ const setupGame = () => {
 
 
   let counter = 0;
-  let frq = 16
+  let frq = 64
   // let bricksNum = 0;
   const animateScene = () => {
     if (counter % frq === 0) {
       bricks.forEach((brick) => brick.moveDown());
     }
-    let playerAdded = false
-    // bricks.forEach((brick) => {
-    //   if (counter % Math.ceil(Math.random() * 660) === 0) {
-    //     brick.rotate();
-    //   }
-    //   if (counter % Math.ceil(Math.random() * 920) === 0) {
-    //     brick.moveClose();
-    //   }
-    //   if (counter % Math.ceil(Math.random() * 920) === 0) {
-    //     brick.moveFar();
-    //   }
-    //   if (counter % Math.ceil(Math.random() * 920) === 0) {
-    //     brick.moveLeft();
-    //   }
-    //   if (counter % Math.ceil(Math.random() * 920) === 0) {
-    //     brick.moveRight();
-    //   }
-    // });
     if (counter % (frq * 10) === 0) {
-      PLAYERS.forEach((player) => {
-        if (!player.isDriving && !playerAdded) {
-          player.isDriving = true;
-          playerAdded = true
-          const brick = new Brick(stage, scene, player.id);
-          bricks.push(brick);
-        }
-      });
+      const brick = new Brick(stage, scene, player.id);
     }
     const p = lf.get()
     camera.position.x = stage.width / 2 - 0.5 + Math.sin(p[0] * 10) * 3;

@@ -24,13 +24,11 @@ const BRICK_SHAPES = [
   ],
 ];
 
-
 export class Brick {
   constructor(stage, scene, playerId) {
     this.stage = stage;
     this.playerId = playerId;
     this.scene = scene;
-    this.isImmobile = false;
     this.color = window.PLAYERS.find(player => player.id === this.playerId).color;
     this.id = Math.ceil(Math.random() * 100000000000000000);
     this.cubes = [];
@@ -45,7 +43,7 @@ export class Brick {
       }
     );
   }
-  
+
   getBox(color) {
     const geometry = new THREE.BoxGeometry(1, 1, 1).scale(0.9, 0.9, 0.9);
     const material = new THREE.MeshBasicMaterial({
@@ -96,6 +94,10 @@ export class Brick {
 
   moveFar() {
     this.move(0, -1);
+  }
+
+  moveDoubleFar() {
+    this.move(0, -2);
   }
 
   moveDown() {
@@ -164,7 +166,7 @@ export class Brick {
   rotate() {
     if (this.isImmobile) return;
     this.clearFromStage();
-    const pivot = this.cubes[Math.ceil(this.cubes.length/2)].position;
+    const pivot = this.cubes[Math.ceil(this.cubes.length / 2)].position;
     const newPosition = this.cubes.map(cube => {
       const x = cube.position.x - pivot.x;
       const z = cube.position.z - pivot.z;

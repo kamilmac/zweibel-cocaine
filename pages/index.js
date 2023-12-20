@@ -7,21 +7,21 @@ const ws = new WebSocket(wsEndpoint);
 let id = null;
 let col = null;
 
-ws.onopen = function (event) {
+ws.onopen = function() {
   console.log("Connection opened");
   id = Math.random().toString(36).substring(8);
   ws.send(`register_player_${id}`)
 };
 
-ws.onerror = function (error) {
+ws.onerror = function(error) {
   console.error("WebSocket Error: " + error);
 };
 
-ws.onclose = function (event) {
+ws.onclose = function() {
   console.log("Connection closed");
 };
 
-ws.onmessage = function (event) {
+ws.onmessage = function(event) {
   console.log("Message received: " + event.data);
   if (event.data.startsWith('color')) {
     const _id = event.data.split('_')[1];
@@ -64,6 +64,23 @@ document.ondblclick = function(e) {
 }
 
 
+// const initBot = () => {
+//   setInterval(() => {
+//     const actions = [
+//       `swipe_up_${id}`,
+//       `swipe_down_${id}`,
+//       `swipe_left_${id}`,
+//       `swipe_right_${id}`,
+//       `rotate_${id}`,
+//     ]
+//     const randomAction = actions[Math.floor(Math.random() * actions.length)];
+//     console.log('randomAction', randomAction);
+//     ws.send(randomAction);
+//   }, 800);
+// }
+
+// initBot();
+
 // circle.addEventListener('touchstart', (event) => {
 //   startX = event.touches[0].clientX;
 //   startY = event.touches[0].clientY;
@@ -94,15 +111,4 @@ document.ondblclick = function(e) {
 //     }
 //   }
 // });
-
-
-
-// there is no communication in the team
-// you spend most of the time on meetings and documentation and processes and same for Nevena
-
-// I have 6 years of expereicne with most of the systems in Volumental and wrote big part of all FE
-// I'm open to help and share knowldge but i can also be critical of various things
-
-// Many things changed and Your role rebalance the team dynamics and now it seems like we do not have much of a democratic process
-// but things are mostly set by design
 

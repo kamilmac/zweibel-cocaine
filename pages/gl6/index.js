@@ -30,7 +30,6 @@ function generatePastelColor() {
   return color;
 }
 
-
 const setupGame = () => {
   renderer = new THREE.WebGLRenderer({
     powerPreference: "high-performance",
@@ -41,7 +40,7 @@ const setupGame = () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(window.devicePixelRatio);
   document.body.appendChild(renderer.domElement);
-  
+
   const width = window.innerWidth;
   const height = window.innerHeight;
 
@@ -51,29 +50,29 @@ const setupGame = () => {
     0.1,
     1000,
   );
-  
+
 
   controls = new OrbitControls(camera, renderer.domElement);
   controls.update();
   // controls.autoRotate = true;
   // controls.autoRotateSpeed = 0.5;
   scene = new THREE.Scene();
-  
+
   const stage = new Stage();
-  
+
   renderFloor(stage);
 
   camera.position.x = stage.width / 2 - 0.5;
   camera.position.y = 30;
   camera.position.z = 15;
-  
+
   composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
-  
-  const hbaoPass = new HBAOPass( scene, camera, width, height );
+
+  const hbaoPass = new HBAOPass(scene, camera, width, height);
   hbaoPass.output = HBAOPass.OUTPUT.Default; // Changed from Denoise to Default to fix color visibility issue
-  composer.addPass( hbaoPass );
- 
+  composer.addPass(hbaoPass);
+
   const params = {
     shape: 4,
     radius: 2,
@@ -86,9 +85,9 @@ const setupGame = () => {
     greyscale: false,
     disable: false
   };
-  const halftonePass = new HalftonePass( window.innerWidth, window.innerHeight, params );
-  composer.addPass( halftonePass );
-  
+  const halftonePass = new HalftonePass(window.innerWidth, window.innerHeight, params);
+  composer.addPass(halftonePass);
+
   // const saoPass = new SAOPass( scene, camera );
   // composer.addPass( saoPass );
 
@@ -111,22 +110,36 @@ const setupGame = () => {
     samples: 12,
   };
 
-  hbaoPass.updateHbaoMaterial( hbaoParameters );
-  hbaoPass.updatePdMaterial( pdParameters );
+  hbaoPass.updateHbaoMaterial(hbaoParameters);
+  hbaoPass.updatePdMaterial(pdParameters);
 
 
   let counter = 0;
-  let frq = 10
-  let bricksNum = 0;
+  let frq = 16
+  // let bricksNum = 0;
   const animateScene = () => {
     if (counter % frq === 0) {
       bricks.forEach((brick) => brick.moveDown());
     }
-    if (counter % 13 === 0) {
-      // bricks.forEach((brick) => brick.rotate());
-    }
     let playerAdded = false
-    if (counter % (frq * 10 ) === 0) {
+    // bricks.forEach((brick) => {
+    //   if (counter % Math.ceil(Math.random() * 660) === 0) {
+    //     brick.rotate();
+    //   }
+    //   if (counter % Math.ceil(Math.random() * 920) === 0) {
+    //     brick.moveClose();
+    //   }
+    //   if (counter % Math.ceil(Math.random() * 920) === 0) {
+    //     brick.moveFar();
+    //   }
+    //   if (counter % Math.ceil(Math.random() * 920) === 0) {
+    //     brick.moveLeft();
+    //   }
+    //   if (counter % Math.ceil(Math.random() * 920) === 0) {
+    //     brick.moveRight();
+    //   }
+    // });
+    if (counter % (frq * 10) === 0) {
       PLAYERS.forEach((player) => {
         if (!player.isDriving && !playerAdded) {
           player.isDriving = true;
@@ -137,11 +150,11 @@ const setupGame = () => {
       });
     }
     const p = lf.get()
-    camera.position.x = stage.width / 2 - 0.5 + Math.sin(p[0]*10) * 3;
-    camera.position.z = 15 + Math.cos(p[2]*18) * 5;
+    camera.position.x = stage.width / 2 - 0.5 + Math.sin(p[0] * 10) * 3;
+    camera.position.z = 14 + Math.cos(p[2] * 18) * 5;
 
     camera.fov = 35;
-    const newCameraPosition = new THREE.Vector3(camera.position.x, 32 + stage.highestCube*0.8, camera.position.z);
+    const newCameraPosition = new THREE.Vector3(camera.position.x, 32 + stage.highestCube * 0.8, camera.position.z);
     camera.position.lerp(newCameraPosition, 0.04);
     controls.target.lerp(new THREE.Vector3(stage.width / 2 - 0.5, 0 + stage.highestCube * 0.4, stage.depth / 2 - 0.5), 0.08);
 
@@ -150,6 +163,7 @@ const setupGame = () => {
     composer.render();
     counter += 1;
     requestAnimationFrame(animateScene);
+    frq = 16 - Math.floor(PLAYERS.length / 2)
   };
 
   animateScene();
@@ -160,16 +174,16 @@ const setupGame = () => {
 const renderFloor = (stage) => {
   const padding = 1
   // create plane for floor
-  const w = stage.width + padding*2;
-  const d = stage.depth + padding*2;
+  const w = stage.width + padding * 2;
+  const d = stage.depth + padding * 2;
   const floorGeometry = new THREE.PlaneGeometry(
-    w,d,w,d
+    w, d, w, d
   );
   const floorMaterial = new THREE.MeshBasicMaterial({ color: 0xefefef, wireframe: true, castShadow: false, receiveShadow: true });
   const floor = new THREE.Mesh(floorGeometry, floorMaterial);
   floor.rotation.x = -Math.PI / 2;
-  floor.position.x = w/2 - padding - 0.5;
-  floor.position.z = d/2 - padding - 0.5;
+  floor.position.x = w / 2 - padding - 0.5;
+  floor.position.z = d / 2 - padding - 0.5;
   floor.position.y = 0.5;
   scene.add(floor);
 
@@ -251,6 +265,7 @@ ws.onmessage = function(event) {
     }
     player.id = event.data.split('register_player_')[1];
     ws.send(`color_${player.id}_#${color.getHexString()}`)
+    console.log('registering', color.getHexString());
     const playerDiv = document.createElement('div');
     playerDiv.classList.add('player');
     playerDiv.style.backgroundColor = color.getStyle();
@@ -349,10 +364,10 @@ ws.onmessage = function(event) {
 setupGame();
 
 var qrcode = new QRCode(document.getElementById("qrcode"), {
-	text: window.location.origin,
-	width: 196,
-	height: 196,
-	colorDark : "#000000",
-	colorLight : "#ffffff",
-	correctLevel : QRCode.CorrectLevel.H
+  text: window.location.origin,
+  width: 196,
+  height: 196,
+  colorDark: "#000000",
+  colorLight: "#ffffff",
+  correctLevel: QRCode.CorrectLevel.H
 });

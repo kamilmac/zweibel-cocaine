@@ -17,6 +17,7 @@ var upgrader = websocket.Upgrader{
 }
 
 var daddy *websocket.Conn
+var baby *websocket.Conn
 
 func main() {
 	r := chi.NewRouter()
@@ -41,6 +42,7 @@ func handleBaby(w http.ResponseWriter, r *http.Request) {
 		log.Print("upgrade:", err)
 		return
 	}
+	baby = conn
 	defer conn.Close()
 	for {
 		messageType, message, err := conn.ReadMessage()
@@ -62,7 +64,13 @@ func handleDaddy(w http.ResponseWriter, r *http.Request) {
 	daddy = conn
 	defer daddy.Close()
 	for {
-		daddy.ReadMessage()
+		messageType, message, err := daddy.ReadMessage()
+		if err != nil {
+			break
+		}
+		if err := baby.WriteMessage(messageType, message); err != nil {
+			break
+		}
 	}
 }
 

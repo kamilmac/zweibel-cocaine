@@ -155,7 +155,7 @@ export class Brick {
     });
   }
 
-  create(startPosition) {
+  create() {
     const shape = BRICK_SHAPES[Math.floor(Math.random() * BRICK_SHAPES.length)];
     const startPosition = [
       Math.floor(Math.random() * (this.stage.width - shape.length)),

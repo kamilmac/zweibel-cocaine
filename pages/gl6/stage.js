@@ -51,7 +51,7 @@ export class Stage {
       for (let y = 0; y < this.height; y++) {
         this.cubes[x][y] = [];
         for (let z = 0; z < this.depth; z++) {
-          this.cubes[x][y][z] = getEmptyCube();
+          this.cubes[x][y][z] = this.getEmptyCube();
         }
       }
     }
@@ -98,7 +98,7 @@ export class Stage {
    * @returns {boolean} True if the cube is filled, false otherwise.
    */
   isCollidingCube(x, y, z) {
-    if (isCubeDefined(x, y, z)) {
+    if (this.isCubeDefined(x, y, z)) {
       return ['floor', 'wall', 'locked'].includes(this.cubes[x][y][z].state);
     }
     return false;

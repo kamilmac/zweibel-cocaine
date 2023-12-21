@@ -25,38 +25,36 @@ const BRICK_SHAPES = [
 let idCounter = 0;
 
 export class Brick {
+  /**
+   * Create a Brick.
+   * @param {Stage} stage - The stage where the brick will be placed.
+   */
   constructor(stage) {
     this.stage = stage;
-    this.color = window.PLAYERS.find(player => player.id === this.playerId).color;
+    this.locked = false;
+    this.color = 0x008833;
     this.id = idCounter++;
     this.cubes = [];
-    const shape = BRICK_SHAPES[Math.floor(Math.random() * BRICK_SHAPES.length)];
-    this.create(
-      {
-        x: Math.floor(Math.random() * (this.stage.width - 3)),
-        y: this.stage.height - 1,
-        z: Math.floor(Math.random() * this.stage.depth),
-      }
-    );
+    this.create();
   }
 
-  kill() {
+  lock() {
+    this.locked = true;
     this.cubes.forEach((cube) => {
-      cube.alive = false;
+      cube.locked = true;
     });
     this.updateStage();
   }
 
   move(x, z) {
-    if (this.isImmobile) return;
+    if (this.locked) return;
     this.clearFromStage();
     const newPosition = this.cubes.map(cube => [
       cube.position.x + x,
       cube.position.y,
       cube.position.z + z,
     ]);
-    const isColliding = this.checkForWallCollision(newPosition);
-    if (!isColliding) {
+    if (!this.isColliding(newPosition)) {
       this.applyNewPosition(newPosition);
     }
   }
@@ -82,55 +80,45 @@ export class Brick {
   }
 
   moveDown() {
-    if (!this.alive) return;
+    if (this.locked) return;
     this.clearFromStage();
     const newPosition = this.cubes.map(cube => [
       cube.position[0],
       cube.position[1] - 1,
       cube.position[2],
     ]);
-    const isColliding = this.checkForCollision(newPosition);
-    if (isColliding) {
-      this.kill();
+    if (this.isColliding(newPosition)) {
+      this.lock();
     } else {
       this.applyNewPosition(newPosition);
     }
   }
 
   applyNewPosition(newPosition) {
+    const prevPosition = this.cubes.map(cube => [
+      cube.position[0],
+      cube.position[1],
+      cube.position[2],
+    ]);
     this.cubes.forEach((cube, index) => {
       cube.position[0] = newPosition[index][0];
       cube.position[1] = newPosition[index][1];
       cube.position[2] = newPosition[index][2];
     });
-    this.updateStage();
+    this.updateStage(prevPosition);
   }
 
-  checkForCollision(newPosition) {
-    let isColliding = false
-    newPosition.forEach((position) => {
-      if (this.stage.isFilledCube(position[0], position[1], position[2])) {
-        isColliding = true;
+  isColliding(newPosition) {
+    for (let i = 0; i < newPosition.length; i++) {
+      if (this.stage.isCollidingCube(newPosition[i][0], newPosition[i][1], newPosition[i][2])) {
+        return true;
       }
-    });
-    return isColliding;
-  }
-
-  checkForWallCollision(newPosition) {
-    let isColliding = false
-    newPosition.forEach((position) => {
-      if (position[0] < 0 || position[0] > this.stage.width - 1) {
-        isColliding = true;
-      }
-      if (position[2] < 0 || position[2] > this.stage.depth - 1) {
-        isColliding = true;
-      }
-    });
-    return isColliding;
+    }
+    return false;
   }
 
   rotate() {
-    if (!this.alive) return;
+    if (this.locked) return;
     this.clearFromStage();
     const pivot = this.cubes[Math.ceil(this.cubes.length / 2)].position;
     const newPosition = this.cubes.map(cube => {
@@ -142,8 +130,7 @@ export class Brick {
         pivot[2] + x,
       ];
     });
-    const isColliding = this.checkForCollision(newPosition);
-    if (!isColliding) {
+    if (!this.isColliding(newPosition)) {
       this.applyNewPosition(newPosition);
     }
   }
@@ -154,13 +141,27 @@ export class Brick {
     });
   }
 
-  updateStage() {
+  updateStage(prevPosition = null) {
     this.cubes.forEach((cube) => {
-      this.stage.setFilledCube(cube.position[0], cube.position[1], cube.position[2], this.id);
+      this.stage.setFilledCube(
+        cube.position[0],
+        cube.position[1],
+        cube.position[2],
+        cube.id,
+        cube.locked ? 'locked' : 'active',
+        cube.color,
+        prevPosition,
+      );
     });
   }
 
   create(startPosition) {
+    const shape = BRICK_SHAPES[Math.floor(Math.random() * BRICK_SHAPES.length)];
+    const startPosition = [
+      Math.floor(Math.random() * (this.stage.width - shape.length)),
+      this.stage.height - 1,
+      Math.floor(Math.random() * this.stage.depth),
+    ];
     for (let x = 0; x < shape.length; x++) {
       for (let y = 0; y < shape[x].length; y++) {
         if (shape[x][y] === 1) {
@@ -168,11 +169,11 @@ export class Brick {
             position: [],
             id: this.id * 1000 + (x + 1) * (y + 1),
             color: this.color,
-            alive: true,
+            locked: false,
           };
-          cube.position[0] = startPosition.x + x;
-          cube.position[1] = startPosition.y + y;
-          cube.position[2] = startPosition.z;
+          cube.position[0] = startPosition[0] + x;
+          cube.position[1] = startPosition[1] + y;
+          cube.position[2] = startPosition[2];
           this.cubes.push(cube);
         }
       }

@@ -12,7 +12,7 @@ import Lifeforms from "lifeforms";
 
 class Game {
   constructor() {
-    this.stage = new Stage();
+    this.stage = new Stage(16, 8, 8);
     this.brick = new Brick(this.stage);
     this.renderer = new Renderer(this.stage);
     this.initGameLoop();
@@ -21,8 +21,11 @@ class Game {
   initGameLoop() {
     setInterval(() => {
       this.brick.moveDown();
-      this.brick.rotate()
-    }, 1000);
+      if (this.brick.locked) {
+        this.brick = new Brick(this.stage);
+      }
+      // this.brick.rotate()
+    }, 100);
   }
 }
 
@@ -61,35 +64,67 @@ class Renderer {
     this.camera.position.z = 15;
   }
 
-  animate = () => {
-    for (let x = 0; x < this.stage.width; x++) {
-      for (let y = 0; y < this.stage.height; y++) {
-        for (let z = 0; z < this.stage.depth; z++) {
-          const cube = this.stage.cubes[x][y][z];
-          // if (cube.dirty) {
-            if (cube.state === "active") {
-              console.log(cube, this.boxes);
-              if (this.boxes[cube.id]) {
-                // this.boxes[cube.id].position.x = x;
-                // this.boxes[cube.id].position.y = y;
-                // this.boxes[cube.id].position.z = z;
-                this.boxes[cube.id].position.lerp(new THREE.Vector3(x, y, z), 0.16);
-              } else {
-                const geometry = new THREE.BoxGeometry(1, 1, 1);
-                const material = new THREE.MeshBasicMaterial({ color: cube.color });
-                const mesh = new THREE.Mesh(geometry, material);
-                mesh.position.x = x;
-                mesh.position.y = y;
-                mesh.position.z = z;
-                this.scene.add(mesh);
-                this.boxes[cube.id] = mesh;
-              }
-              cube.dirty = false;  
-            }
-          // }
+  handleActiveCube(cube, x, y, z) {
+    if (this.boxes[cube.id]) {
+      this.boxes[cube.id]._targetPosition = new THREE.Vector3(x, y, z);
+      this.boxes[cube.id]._lerpDone = false;
+      return;
+    }
+    const geometry = new THREE.BoxGeometry(1, 1, 1);
+    const material = new THREE.MeshBasicMaterial({ color: cube.color });
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.position.x = x;
+    mesh.position.y = y;
+    mesh.position.z = z;
+    this.scene.add(mesh);
+    this.boxes[cube.id] = mesh;
+  }
+
+  handleLockedCube(cube, x, y, z) {
+    if (this.boxes[cube.id]) {
+      this.boxes[cube.id].material.color.setHex(0xff0000);
+      this.boxes[cube.id]._targetScale = new THREE.Vector3(0.5, 0.5, 0.5);
+    }
+  }
+
+  lerpTargets() {
+    this.boxes.forEach((box) => {
+      if (box._targetPosition && !box._lerpDone) {
+        box.position.lerp(box._targetPosition, 0.1);
+        if (box.position.distanceTo(box._targetPosition) < 0.001) {
+          box._lerpDone = true;
         }
       }
+      if (box._targetScale) {
+        box.scale.lerp(box._targetScale, 0.1);
+      }
+    });
+  }
+
+  applyStage() {
+    if (this.stage.dirty) {
+      for (let x = 0; x < this.stage.width; x++) {
+        for (let y = 0; y < this.stage.height; y++) {
+          for (let z = 0; z < this.stage.depth; z++) {
+            const cube = this.stage.cubes[x][y][z];
+            if (cube?.dirty) {
+              if (cube.state === "active") {
+                this.handleActiveCube(cube, x, y, z);
+              } else if (cube.state === "locked") {
+                this.handleLockedCube(cube, x, y, z);
+              }
+              cube.dirty = false;
+            }
+          }
+        }
+      }
+      this.stage.dirty = false;
     }
+  }
+
+  animate = () => {
+    this.applyStage();
+    this.lerpTargets();
     this.renderer.render(this.scene, this.camera);
     requestAnimationFrame(this.animate);
   }

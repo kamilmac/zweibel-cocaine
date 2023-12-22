@@ -143,7 +143,7 @@ export class Brick {
 
   updateStage(prevPosition = null) {
     this.cubes.forEach((cube) => {
-      this.stage.setFilledCube(
+      this.stage.fillCube(
         cube.position[0],
         cube.position[1],
         cube.position[2],

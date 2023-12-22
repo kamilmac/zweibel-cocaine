@@ -5,40 +5,14 @@
  */
 export class Stage {
   /**
-   * The height of the stage.
-   * @type {number}
-   */
-  height = 32;
-
-  /**
-   * The width of the stage.
-   * @type {number}
-   */
-  width = 12;
-
-  /**
-   * The depth of the stage.
-   * @type {number}
-   */
-  depth = 12;
-
-  /**
-   * Represents all the cubes in the stage.
-   * @public
-   * @type {{
-   *  color: number,
-   *  id: number,
-   *  state: ('floor'|'wall'|'active'|'locked'),
-   *  prevPosition: number[],
-   *  dirty: boolean,
-   * }[][][]}
-   */
-  cubes = [];
-
-  /**
    * Constructs the stage and initializes its properties.
    */
-  constructor() {
+  constructor(height = 24, width = 12, depth = 12) {
+    this.height = height;
+    this.width = width;
+    this.depth = depth;
+    this.cubes = [];
+    this.dirty = true;
     this.init();
   }
 
@@ -48,27 +22,33 @@ export class Stage {
   init() {
     for (let x = 0; x < this.width; x++) {
       this.cubes[x] = [];
-      for (let y = 0; y < this.height; y++) {
+      for (let y = -1; y < this.height; y++) {
         this.cubes[x][y] = [];
         for (let z = 0; z < this.depth; z++) {
-          this.cubes[x][y][z] = this.getEmptyCube();
+          if (y === -1) {
+            this.cubes[x][y][z] = this.getFloorCube();
+          } else {
+            this.cubes[x][y][z] = this.getEmptyCube();
+          }
         }
       }
     }
   }
 
   getEmptyCube() {
+    return null;
+  }
+
+  getFloorCube() {
     return {
-      color: null,
+      color: 0x000000,
       id: null,
-      prevPosition: null,
-      state: null,
+      state: 'floor',
       dirty: true,
     };
   }
-
  
-  setFilledCube(x, y, z, id, state, color, prevPosition = null) {
+  fillCube(x, y, z, id, state, color, prevPosition = null) {
     if (this.isCubeDefined(x, y, z)) {
       this.cubes[x][y][z] = {
         color,
@@ -77,12 +57,14 @@ export class Stage {
         state,
         dirty: true,
       };
+      this.dirty = true;
     }
   }
 
   setEmptyCube(x, y, z) {
     if (this.isCubeDefined(x, y, z)) {
       this.cubes[x][y][z] = this.getEmptyCube();
+      this.dirty = true;
     }
   }
 
@@ -99,7 +81,7 @@ export class Stage {
    */
   isCollidingCube(x, y, z) {
     if (this.isCubeDefined(x, y, z)) {
-      return ['floor', 'wall', 'locked'].includes(this.cubes[x][y][z].state);
+      return ['floor', 'wall', 'locked'].includes(this.cubes[x][y][z]?.state);
     }
     return false;
   }  

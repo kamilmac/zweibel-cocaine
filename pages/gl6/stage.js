@@ -20,16 +20,20 @@ export class Stage {
    * Initializes the stage by creating a 3D array representing all cubes in the stage.
    */
   init() {
-    for (let x = 0; x < this.width; x++) {
+    for (let x = -1; x < this.width + 1; x++) {
       this.cubes[x] = [];
       for (let y = -1; y < this.height; y++) {
         this.cubes[x][y] = [];
-        for (let z = 0; z < this.depth; z++) {
+        for (let z = -1; z < this.depth + 1; z++) {
           if (y === -1) {
             this.cubes[x][y][z] = this.getFloorCube();
-          } else {
-            this.cubes[x][y][z] = this.getEmptyCube();
+            continue;
           }
+          if (x > -1 && x < this.width && z > -1 && z < this.depth) {
+            this.cubes[x][y][z] = this.getEmptyCube();
+            continue;
+          }
+          this.cubes[x][y][z] = this.getWallCube();
         }
       }
     }
@@ -41,10 +45,19 @@ export class Stage {
 
   getFloorCube() {
     return {
-      color: 0x000000,
+      color: 0x724722,
       id: null,
       state: 'floor',
-      dirty: true,
+      dirty: false,
+    };
+  }
+
+  getWallCube() {
+    return {
+      color: 0x255377,
+      id: null,
+      state: 'wall',
+      dirty: false,
     };
   }
  

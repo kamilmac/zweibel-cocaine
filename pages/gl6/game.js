@@ -12,30 +12,35 @@ import Lifeforms from "lifeforms";
 
 class Game {
   constructor() {
-    this.stage = new Stage(16, 8, 8);
+    this.counter = 0;
+    this.stage = new Stage(12, 8, 8);
     this.brick = new Brick(this.stage);
-    this.renderer = new Renderer(this.stage);
-    this.initGameLoop();
+    this.engine = new Engine(this.stage);
+    this.tick();
   }
 
-  initGameLoop() {
-    setInterval(() => {
+  tick = () => {
+    if (this.counter % 20 === 0) {
+      if (this.counter % 40 === 0) {
+        this.brick.rotate()
+      }
       this.brick.moveDown();
       if (this.brick.locked) {
         this.brick = new Brick(this.stage);
       }
-      // this.brick.rotate()
-    }, 100);
+    }
+    this.counter++;
+    this.engine.render();
+    requestAnimationFrame(this.tick);
   }
 }
 
 
-class Renderer {
+class Engine {
   constructor(stage) {
     this.stage = stage;
     this.boxes = [];
     this.setup();
-    this.animate();
   }
 
   setup() {
@@ -56,12 +61,16 @@ class Renderer {
       0.1,
       1000,
     );
+    this.camera.position.x = 12;
+    this.camera.position.y = 6;
+    this.camera.position.z = 12;
+    this.camera.updateProjectionMatrix();
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+    // this.controls.target.set(new THREE.Vector3(0,0,0));
     this.controls.update();
     this.scene = new THREE.Scene();
-    this.camera.position.x = this.stage.width / 2 - 0.5;
-    this.camera.position.y = 30;
-    this.camera.position.z = 15;
+
+    this.renderFloor();
   }
 
   handleActiveCube(cube, x, y, z) {
@@ -85,6 +94,16 @@ class Renderer {
       this.boxes[cube.id].material.color.setHex(0xff0000);
       this.boxes[cube.id]._targetScale = new THREE.Vector3(0.5, 0.5, 0.5);
     }
+  }
+
+  renderFloor() {
+    const geometry = new THREE.BoxGeometry(this.stage.width, 1, this.stage.depth);
+    const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.position.x = this.stage.width / 2 - 0.5;
+    mesh.position.y = -1;
+    mesh.position.z = this.stage.depth / 2 - 0.5;
+    this.scene.add(mesh);
   }
 
   lerpTargets() {
@@ -122,11 +141,10 @@ class Renderer {
     }
   }
 
-  animate = () => {
+  render() {
     this.applyStage();
     this.lerpTargets();
     this.renderer.render(this.scene, this.camera);
-    requestAnimationFrame(this.animate);
   }
 }
 

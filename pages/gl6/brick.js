@@ -120,16 +120,21 @@ export class Brick {
   rotate() {
     if (this.locked) return;
     this.clearFromStage();
-    const pivot = this.cubes[Math.ceil(this.cubes.length / 2)].position;
+    // Find the pivot cube around which to rotate
+    const pivotIndex = Math.floor(this.cubes.length / 2);
+    const pivot = this.cubes[pivotIndex].position;
+    // Calculate new positions for each cube after rotation
     const newPosition = this.cubes.map(cube => {
       const x = cube.position[0] - pivot[0];
       const z = cube.position[2] - pivot[2];
+      // Rotate 90 degrees around the pivot on the Y axis
       return [
-        pivot[0] - z,
+        pivot[0] + z,
         cube.position[1],
-        pivot[2] + x,
+        pivot[2] - x,
       ];
     });
+    // Apply new position if there is no collision
     if (!this.isColliding(newPosition)) {
       this.applyNewPosition(newPosition);
     }
@@ -155,10 +160,33 @@ export class Brick {
     });
   }
 
+  correctToBounds() {
+    let extremeX = 0;
+    let extremeZ = 0;
+    for (let i = 0; i < this.cubes.length; i++) {
+      if (this.cubes[i].position[0] > extremeX) {
+        extremeX = this.cubes[i].position[0];
+      }
+      if (this.cubes[i].position[2] > extremeZ) {
+        extremeZ = this.cubes[i].position[2];
+      }
+    }
+    if (extremeX >= this.stage.width) {
+      for (let i = 0; i < this.cubes.length; i++) {
+        this.cubes[i].position[0] -= (extremeX - this.stage.width + 1);
+      }
+    }
+    if (extremeZ >= this.stage.width) {
+      for (let i = 0; i < this.cubes.length; i++) {
+        this.cubes[i].position[2] -= (extremeZ - this.stage.depth + 1);
+      }
+    }
+  }
+
   create() {
     const shape = BRICK_SHAPES[Math.floor(Math.random() * BRICK_SHAPES.length)];
     const startPosition = [
-      Math.floor(Math.random() * (this.stage.width - shape.length)),
+      Math.floor(Math.random() * this.stage.width),
       this.stage.height - 1,
       Math.floor(Math.random() * this.stage.depth),
     ];
@@ -178,6 +206,7 @@ export class Brick {
         }
       }
     }
+    this.correctToBounds();
     this.updateStage();
   }
 }

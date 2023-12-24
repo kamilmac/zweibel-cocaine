@@ -10,28 +10,35 @@ import { Stage } from "/gl6/stage.js";
 import { Brick } from "/gl6/brick.js";
 import Lifeforms from "lifeforms";
 
+const CYCLE_LENGTH_MS = 400;
+
 class Game {
   constructor() {
-    this.counter = 0;
+    this.blockCyclesCount = 1;
     this.stage = new Stage(12, 8, 8);
     this.brick = new Brick(this.stage);
     this.engine = new Engine(this.stage);
-    this.tick();
+    this.loop();
   }
 
-  tick = () => {
-    if (this.counter % 20 === 0) {
-      if (this.counter % 40 === 0) {
-        this.brick.rotate()
-      }
+  onCycleBlocks(callback) {
+    const t = Math.round(performance.now() / 100) * 100;
+    if (t % (CYCLE_LENGTH_MS * this.blockCyclesCount) === 0) {
+      callback();
+      this.blockCyclesCount += 1;
+    }
+  }
+
+  loop = () => {
+    this.onCycleBlocks(() => {
       this.brick.moveDown();
       if (this.brick.locked) {
         this.brick = new Brick(this.stage);
       }
-    }
-    this.counter++;
+    });
+    
     this.engine.render();
-    requestAnimationFrame(this.tick);
+    requestAnimationFrame(this.loop);
   }
 }
 
@@ -66,7 +73,7 @@ class Engine {
     this.camera.position.z = 12;
     this.camera.updateProjectionMatrix();
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-    // this.controls.target.set(new THREE.Vector3(0,0,0));
+    // this.controls.target.set(new THREE.Vector3(0,6,0));
     this.controls.update();
     this.scene = new THREE.Scene();
 
@@ -92,7 +99,7 @@ class Engine {
   handleLockedCube(cube, x, y, z) {
     if (this.boxes[cube.id]) {
       this.boxes[cube.id].material.color.setHex(0xff0000);
-      this.boxes[cube.id]._targetScale = new THREE.Vector3(0.5, 0.5, 0.5);
+      this.boxes[cube.id]._targetScale = new THREE.Vector3(0.9, 0.9, 0.9);
     }
   }
 

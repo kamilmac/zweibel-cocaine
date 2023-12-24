@@ -95,17 +95,12 @@ export class Brick {
   }
 
   applyNewPosition(newPosition) {
-    const prevPosition = this.cubes.map(cube => [
-      cube.position[0],
-      cube.position[1],
-      cube.position[2],
-    ]);
     this.cubes.forEach((cube, index) => {
       cube.position[0] = newPosition[index][0];
       cube.position[1] = newPosition[index][1];
       cube.position[2] = newPosition[index][2];
     });
-    this.updateStage(prevPosition);
+    this.updateStage();
   }
 
   isColliding(newPosition) {
@@ -146,7 +141,7 @@ export class Brick {
     });
   }
 
-  updateStage(prevPosition = null) {
+  updateStage() {
     this.cubes.forEach((cube) => {
       this.stage.fillCube(
         cube.position[0],
@@ -155,7 +150,6 @@ export class Brick {
         cube.id,
         cube.locked ? 'locked' : 'active',
         cube.color,
-        prevPosition,
       );
     });
   }
@@ -195,7 +189,7 @@ export class Brick {
         if (shape[x][y] === 1) {
           const cube = {
             position: [],
-            id: this.id * 1000 + (x + 1) * (y + 1),
+            id: this.id * 100 + this.cubes.length,
             color: this.color,
             locked: false,
           };

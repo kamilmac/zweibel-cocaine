@@ -85,13 +85,6 @@ export class Stage {
     return this.cubes[x] && this.cubes[x][y] && this.cubes[x][y][z] !== undefined;
   }
 
-  /**
-   * Checks if a cube at the specified coordinates is filled.
-   * @param {number} x - The x-coordinate of the cube.
-   * @param {number} y - The y-coordinate of the cube.
-   * @param {number} z - The z-coordinate of the cube.
-   * @returns {boolean} True if the cube is filled, false otherwise.
-   */
   isCollidingCube(x, y, z) {
     if (this.isCubeDefined(x, y, z)) {
       return ['floor', 'wall', 'locked'].includes(this.cubes[x][y][z]?.state);

@@ -50,9 +50,9 @@ export class Brick {
     if (this.locked) return;
     this.clearFromStage();
     const newPosition = this.cubes.map(cube => [
-      cube.position.x + x,
-      cube.position.y,
-      cube.position.z + z,
+      cube.position[0] + x,
+      cube.position[1],
+      cube.position[2] + z,
     ]);
     if (!this.isColliding(newPosition)) {
       this.applyNewPosition(newPosition);
@@ -95,11 +95,11 @@ export class Brick {
   }
 
   applyNewPosition(newPosition) {
-    this.cubes.forEach((cube, index) => {
-      cube.position[0] = newPosition[index][0];
-      cube.position[1] = newPosition[index][1];
-      cube.position[2] = newPosition[index][2];
-    });
+    for (let index = 0; index < this.cubes.length; index += 1) {
+      this.cubes[index].position[0] = newPosition[index][0];
+      this.cubes[index].position[1] = newPosition[index][1];
+      this.cubes[index].position[2] = newPosition[index][2];
+    }
     this.updateStage();
   }
 

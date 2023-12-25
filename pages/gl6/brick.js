@@ -1,39 +1,43 @@
-const BRICK_SHAPES = [
-  [
-    [1, 0],
-    [1, 0],
-    [1, 1],
-  ],
-  [
-    [1, 1],
-    [1, 1],
-  ],
-  [
-    [1],
-    [1],
-    [1],
-    [1],
-  ],
-  [
-    [1],
-    [1],
-    [1, 1],
-    [1, 1],
-  ],
-];
-
-let idCounter = 0;
-
 export class Brick {
-  /**
-   * Create a Brick.
-   * @param {Stage} stage - The stage where the brick will be placed.
-   */
+  static SHAPES = [
+    [
+      [1, 0],
+      [1, 0],
+      [1, 1],
+    ],
+    [
+      [1, 1],
+      [1, 1],
+    ],
+    [
+      [1, 0],
+      [1, 1],
+    ],
+    [
+      [1],
+      [1],
+      [1],
+      [1],
+    ],
+    [
+      [1],
+      [1],
+      [1, 1],
+      [1, 1],
+    ],
+    [
+      [1, 0],
+      [1, 0],
+    ],
+  ];
+  
+  static idCounter = 0;
+
   constructor(stage) {
     this.stage = stage;
     this.locked = false;
     this.color = 0x008833;
-    this.id = idCounter++;
+    this.id = Brick.idCounter++;
     this.cubes = [];
     this.create();
   }
@@ -57,26 +61,6 @@ export class Brick {
     if (!this.isColliding(newPosition)) {
       this.applyNewPosition(newPosition);
     }
-  }
-
-  moveLeft() {
-    this.move(-1, 0);
-  }
-
-  moveRight() {
-    this.move(1, 0);
-  }
-
-  moveClose() {
-    this.move(0, 1);
-  }
-
-  moveFar() {
-    this.move(0, -1);
-  }
-
-  moveDoubleFar() {
-    this.move(0, -2);
   }
 
   moveDown() {
@@ -178,7 +162,7 @@ export class Brick {
   }
 
   create() {
-    const shape = BRICK_SHAPES[Math.floor(Math.random() * BRICK_SHAPES.length)];
+    const shape = Brick.SHAPES[Math.floor(Math.random() * Brick.SHAPES.length)];
     const startPosition = [
       Math.floor(Math.random() * this.stage.width),
       this.stage.height - 1,

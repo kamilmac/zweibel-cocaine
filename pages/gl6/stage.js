@@ -1,12 +1,4 @@
-/**
- * Represents the 3D stage in the game where bricks are placed.
- * @class
- * @name Stage
- */
 export class Stage {
-  /**
-   * Constructs the stage and initializes its properties.
-   */
   constructor(height = 24, width = 12, depth = 12) {
     this.height = height;
     this.width = width;
@@ -16,9 +8,6 @@ export class Stage {
     this.init();
   }
 
-  /**
-   * Initializes the stage by creating a 3D array representing all cubes in the stage.
-   */
   init() {
     for (let x = -1; x < this.width + 1; x++) {
       this.cubes[x] = [];
@@ -91,5 +80,4 @@ export class Stage {
     }
     return false;
   }  
-
 }

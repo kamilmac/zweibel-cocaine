@@ -49,7 +49,7 @@ export class Stage {
       dirty: false,
     };
   }
- 
+
   fillCube(x, y, z, id, state, color, prevPosition = null) {
     if (this.isCubeDefined(x, y, z)) {
       this.cubes[x][y][z] = {

@@ -60,6 +60,7 @@ export class Brick {
     ]);
     if (!this.isColliding(newPosition)) {
       this.applyNewPosition(newPosition);
+      this.updateStage();
     }
   }
 
@@ -75,6 +76,7 @@ export class Brick {
       this.lock();
     } else {
       this.applyNewPosition(newPosition);
+      this.updateStage();
     }
   }
 
@@ -84,7 +86,6 @@ export class Brick {
       this.cubes[index].position[1] = newPosition[index][1];
       this.cubes[index].position[2] = newPosition[index][2];
     }
-    this.updateStage();
   }
 
   isColliding(newPosition) {
@@ -114,9 +115,11 @@ export class Brick {
       ];
     });
     // Apply new position if there is no collision
-    if (!this.isColliding(newPosition)) {
-      this.applyNewPosition(newPosition);
+    this.applyNewPosition(newPosition);
+    if (this.isColliding(newPosition)) {
+      this.correctToBounds();
     }
+    this.updateStage();
   }
 
   clearFromStage() {
@@ -139,24 +142,38 @@ export class Brick {
   }
 
   correctToBounds() {
-    let extremeX = 0;
-    let extremeZ = 0;
+    let minX = Infinity;
+    let minZ = Infinity;
+    let maxX = -Infinity;
+    let maxZ = -Infinity;
     for (let i = 0; i < this.cubes.length; i++) {
-      if (this.cubes[i].position[0] > extremeX) {
-        extremeX = this.cubes[i].position[0];
-      }
-      if (this.cubes[i].position[2] > extremeZ) {
-        extremeZ = this.cubes[i].position[2];
+      maxX = Math.max(maxX, this.cubes[i].position[0]);
+      maxZ = Math.max(maxZ, this.cubes[i].position[2]);
+      minX = Math.min(minX, this.cubes[i].position[0]);
+      minZ = Math.min(minZ, this.cubes[i].position[2]);
+    }
+    if (maxX >= this.stage.width) {
+      let offsetX = maxX - this.stage.width + 1;
+      for (let i = 0; i < this.cubes.length; i++) {
+        this.cubes[i].position[0] -= offsetX;
       }
     }
-    if (extremeX >= this.stage.width) {
+    if (maxZ >= this.stage.depth) {
+      let offsetZ = maxZ - this.stage.depth + 1;
       for (let i = 0; i < this.cubes.length; i++) {
-        this.cubes[i].position[0] -= (extremeX - this.stage.width + 1);
+        this.cubes[i].position[2] -= offsetZ;
       }
     }
-    if (extremeZ >= this.stage.width) {
+    if (minX < 0) {
+      let offsetX = -minX;
       for (let i = 0; i < this.cubes.length; i++) {
-        this.cubes[i].position[2] -= (extremeZ - this.stage.depth + 1);
+        this.cubes[i].position[0] += offsetX;
+      }
+    }
+    if (minZ < 0) {
+      let offsetZ = -minZ;
+      for (let i = 0; i < this.cubes.length; i++) {
+        this.cubes[i].position[2] += offsetZ;
       }
     }
   }

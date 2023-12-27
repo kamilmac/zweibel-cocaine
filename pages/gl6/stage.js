@@ -6,6 +6,7 @@ export class Stage {
     this.width = width;
     this.depth = depth;
     this.cubes = [];
+    this.toBeRemovedCubes = [];
     this.dirty = true;
     this.init();
   }
@@ -36,11 +37,7 @@ export class Stage {
   }
 
   getEmptyCube() {
-    return {
-      id: null,
-      state: 'empty',
-      dirty: true,
-    };
+    return null
   }
 
   getFloorCube() {
@@ -48,7 +45,6 @@ export class Stage {
       color: 0x724722,
       id: null,
       state: 'floor',
-      dirty: false,
     };
   }
 
@@ -57,17 +53,19 @@ export class Stage {
       color: 0x255377,
       id: null,
       state: 'wall',
-      dirty: false,
     };
   }
 
-  fillCube(x, y, z, id, state, color) {
+  fillCube(x, y, z, id, state) {
+    let color = 0x00ff00
+    if (state === 'locked') {
+      color = 0xff0000
+    }
     if (this.isCubeDefined(x, y, z)) {
       this.cubes[x][y][z] = {
         color,
         id,
         state,
-        dirty: true,
       };
       this.dirty = true;
     }
@@ -76,19 +74,15 @@ export class Stage {
   resetCube(x, y, z) {
     if (this.isCubeDefined(x, y, z)) {
       this.cubes[x][y][z] = this.getEmptyCube();
-      this.cubes[x][y][z].dirty = true;
-      this.dirty = true;
+      // this.dirty = true;
     }
   }
 
   setToBeRemovedCube(x, y, z) {
     if (this.isCubeDefined(x, y, z)) {
-      const id = this.cubes[x][y][z].id;
       this.cubes[x][y][z] = this.getEmptyCube();
-      this.cubes[x][y][z].id = id;
-      this.cubes[x][y][z].dirty = true;
-      this.dirty = true;
     }
+    this.dirty = true;
   }
 
   setToBeMovedDownCube(x, y, z) {
@@ -97,12 +91,12 @@ export class Stage {
       const color = this.cubes[x][y][z].color;
       this.fillCube(x, y-1, z, id, 'locked', color);
       this.cubes[x][y][z] = this.getEmptyCube();
-      this.cubes[x][y][z].dirty = true;
       this.dirty = true;
     }
   }
 
   checkForFilledLines() {
+    this.toBeRemovedCubes = [];
     let zLine = [];
     let y = 0;
     for (let x = 0; x < this.width; x++) {

@@ -13,6 +13,7 @@ export class Engine {
     this.stage = stage;
     this.boxes = [];
     this.setup();
+    this.idsInStage = [];
   }
 
   setup() {
@@ -49,9 +50,12 @@ export class Engine {
     this.renderFloor();
   }
 
-  handleActiveCube(cube, x, y, z) {
+  handleCube(cube, x, y, z) {
+    if (!cube?.id) { return; }
+    this.idsInStage.push(cube.id);
     if (this.boxes[cube.id]) {
       this.boxes[cube.id]._targetPosition = new THREE.Vector3(x, y, z);
+      this.boxes[cube.id].material.color.setHex(cube.color);
       this.boxes[cube.id]._lerpDone = false;
       return;
     }
@@ -65,33 +69,6 @@ export class Engine {
     this.boxes[cube.id] = mesh;
   }
 
-  handleLockedCube(cube, x, y, z) {
-    if (this.boxes[cube.id]) {
-      this.boxes[cube.id].material.color.setHex(0xff0000);
-      this.boxes[cube.id]._targetScale = new THREE.Vector3(0.9, 0.9, 0.9);
-      this.boxes[cube.id]._targetPosition = new THREE.Vector3(x, y, z);
-      this.boxes[cube.id]._lerpDone = false;
-    }
-  }
-
-  handleEmptyCube(cube, x, y, z) {
-    if (this.boxes[cube.id]) {
-      this.boxes[cube.id].material.color.setHex(0x000000);
-      this.boxes[cube.id]._targetScale = new THREE.Vector3(0.0, 0.0, 0.0);
-      this.boxes[cube.id]._lerpDone = false;
-      // this.scene.remove(this.boxes[cube.id]);
-      this.boxes[cube.id] = null;
-    } else {
-      for (let i = 0; i < this.boxes.length; i++) {
-        if (this.boxes[i] && this.boxes[i].position.x === x && this.boxes[i].position.y === y && this.boxes[i].position.z === z) {
-          // this.scene.remove(this.boxes[cube.id]);
-          // delete this.boxes[cube.id];
-        }
-      }
-      // console.log("cube does not exist",cube, x, y, z);
-    }
-  }
-
   renderFloor() {
     const geometry = new THREE.BoxGeometry(this.stage.width, 1, this.stage.depth);
     const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
@@ -103,7 +80,7 @@ export class Engine {
   }
 
   lerpTargets() {
-    this.boxes.forEach((box) => {
+    this.boxes.forEach((box, i) => {
       if (box === null) { return };
       if (box._targetPosition && !box._lerpDone) {
         box.position.lerp(box._targetPosition, 0.2);
@@ -111,41 +88,34 @@ export class Engine {
           box._lerpDone = true;
         }
       }
-      if (box._targetScale) {
-        box.scale.lerp(box._targetScale, 0.2);
-        // if (box.scale.distanceTo(box._targetScale) < 0.001) {
-        //   box = null;
-        // }
-      }
     });
   }
 
   applyStage() {
-    if (this.stage.dirty) {
-      for (let x = 0; x < this.stage.width; x++) {
-        for (let y = 0; y < this.stage.height; y++) {
-          for (let z = 0; z < this.stage.depth; z++) {
-            const cube = this.stage.cubes[x][y][z];
-            if (cube?.dirty) {
-              if (cube.state === "active") {
-                this.handleActiveCube(cube, x, y, z);
-              } else if (cube.state === "locked") {
-                this.handleLockedCube(cube, x, y, z);
-              } else if (cube.state === "empty") {
-                this.handleEmptyCube(cube, x, y, z);
-              }
-              cube.dirty = false;
-            }
-          }
+    this.idsInStage = [];
+    for (let x = 0; x < this.stage.width; x++) {
+      for (let y = 0; y < this.stage.height; y++) {
+        for (let z = 0; z < this.stage.depth; z++) {
+          const cube = this.stage.cubes[x][y][z];
+          this.handleCube(cube, x, y, z);
         }
       }
-      this.stage.dirty = false;
     }
+    this.boxes.forEach((box, i) => {
+      if (box === null) { return };
+      if (!this.idsInStage.includes(i)) {
+        this.scene.remove(box);
+        this.boxes[i] = null;
+      }
+    });
     window.boxes = this.boxes;
   }
 
   render() {
-    this.applyStage();
+    if (this.stage.dirty) {
+      this.applyStage();
+      this.stage.dirty = false;
+    }
     this.lerpTargets();
     this.renderer.render(this.scene, this.camera);
   }

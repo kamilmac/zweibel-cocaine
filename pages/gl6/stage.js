@@ -39,7 +39,7 @@ export class Stage {
     return {
       id: null,
       state: 'empty',
-      dirty: false,
+      dirty: true,
     };
   }
 
@@ -76,6 +76,7 @@ export class Stage {
   resetCube(x, y, z) {
     if (this.isCubeDefined(x, y, z)) {
       this.cubes[x][y][z] = this.getEmptyCube();
+      this.cubes[x][y][z].dirty = true;
       this.dirty = true;
     }
   }
@@ -125,6 +126,7 @@ export class Stage {
         }
       }
     });
+    window.cubes = this.cubes[0][0];
   }
 
   isCubeDefined(x, y, z) {

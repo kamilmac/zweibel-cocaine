@@ -51,7 +51,6 @@ export class Engine {
 
   handleActiveCube(cube, x, y, z) {
     if (this.boxes[cube.id]) {
-      console.log("cube exists", x, y, z);
       this.boxes[cube.id]._targetPosition = new THREE.Vector3(x, y, z);
       this.boxes[cube.id]._lerpDone = false;
       return;
@@ -81,7 +80,15 @@ export class Engine {
       this.boxes[cube.id]._targetScale = new THREE.Vector3(0.0, 0.0, 0.0);
       this.boxes[cube.id]._lerpDone = false;
       // this.scene.remove(this.boxes[cube.id]);
-      // delete this.boxes[cube.id];
+      this.boxes[cube.id] = null;
+    } else {
+      for (let i = 0; i < this.boxes.length; i++) {
+        if (this.boxes[i] && this.boxes[i].position.x === x && this.boxes[i].position.y === y && this.boxes[i].position.z === z) {
+          // this.scene.remove(this.boxes[cube.id]);
+          // delete this.boxes[cube.id];
+        }
+      }
+      // console.log("cube does not exist",cube, x, y, z);
     }
   }
 
@@ -97,6 +104,7 @@ export class Engine {
 
   lerpTargets() {
     this.boxes.forEach((box) => {
+      if (box === null) { return };
       if (box._targetPosition && !box._lerpDone) {
         box.position.lerp(box._targetPosition, 0.2);
         if (box.position.distanceTo(box._targetPosition) < 0.001) {
@@ -105,6 +113,9 @@ export class Engine {
       }
       if (box._targetScale) {
         box.scale.lerp(box._targetScale, 0.2);
+        // if (box.scale.distanceTo(box._targetScale) < 0.001) {
+        //   box = null;
+        // }
       }
     });
   }
@@ -130,6 +141,7 @@ export class Engine {
       }
       this.stage.dirty = false;
     }
+    window.boxes = this.boxes;
   }
 
   render() {

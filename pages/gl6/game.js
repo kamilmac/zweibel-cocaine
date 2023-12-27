@@ -30,6 +30,7 @@ class Game {
   loop = () => {
     this.controls.applyActions(this.brick);
     this.onCycleBlocks(() => {
+      if (window.paused) return;
       this.stage.checkForFilledLines();
       this.brick.moveDown();
       if (this.brick.locked) {

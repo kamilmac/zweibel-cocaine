@@ -2,6 +2,7 @@ export class Controls {
   constructor() {
     this.addControls()
     this.actions = [];
+    window.paused = false;
   }
 
   addControls() {
@@ -29,6 +30,9 @@ export class Controls {
           break;
         case ' ':
           this.actions.push('fall');
+          break;
+        case 'p':
+          window.paused = !window.paused;
           break;
         default:
           break;

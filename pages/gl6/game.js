@@ -30,6 +30,7 @@ class Game {
   loop = () => {
     this.controls.applyActions(this.brick);
     this.onCycleBlocks(() => {
+      this.stage.checkForFilledLines();
       this.brick.moveDown();
       if (this.brick.locked) {
         this.addBrick();
@@ -41,3 +42,19 @@ class Game {
 }
 
 new Game()
+
+
+const CFG = {
+  colors: {
+    active: '',
+    locked: '',
+    floor: '',
+  },
+  cycleTime: 800,
+  shapes: [],
+  stage: {
+    width: 8,
+    height: 8,
+    height: 12,
+  }
+};

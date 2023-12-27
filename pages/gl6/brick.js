@@ -26,18 +26,15 @@ export class Brick {
       [1, 1],
     ],
     [
-      [1, 0],
-      [1, 0],
+      [1],
+      [1],
     ],
   ];
   
-  static idCounter = 0;
-
   constructor(stage) {
     this.stage = stage;
     this.locked = false;
     this.color = 0x008833;
-    this.id = Brick.idCounter++;
     this.cubes = [];
     this.create();
   }
@@ -124,7 +121,7 @@ export class Brick {
 
   clearFromStage() {
     this.cubes.forEach((cube) => {
-      this.stage.setEmptyCube(cube.position[0], cube.position[1], cube.position[2]);
+      this.stage.resetCube(cube.position[0], cube.position[1], cube.position[2]);
     });
   }
 
@@ -190,7 +187,7 @@ export class Brick {
         if (shape[x][y] === 1) {
           const cube = {
             position: [],
-            id: this.id * 100 + this.cubes.length,
+            id: this.stage.getNewID(),
             color: this.color,
             locked: false,
           };

@@ -51,6 +51,7 @@ export class Engine {
 
   handleActiveCube(cube, x, y, z) {
     if (this.boxes[cube.id]) {
+      console.log("cube exists", x, y, z);
       this.boxes[cube.id]._targetPosition = new THREE.Vector3(x, y, z);
       this.boxes[cube.id]._lerpDone = false;
       return;
@@ -69,6 +70,18 @@ export class Engine {
     if (this.boxes[cube.id]) {
       this.boxes[cube.id].material.color.setHex(0xff0000);
       this.boxes[cube.id]._targetScale = new THREE.Vector3(0.9, 0.9, 0.9);
+      this.boxes[cube.id]._targetPosition = new THREE.Vector3(x, y, z);
+      this.boxes[cube.id]._lerpDone = false;
+    }
+  }
+
+  handleEmptyCube(cube, x, y, z) {
+    if (this.boxes[cube.id]) {
+      this.boxes[cube.id].material.color.setHex(0x000000);
+      this.boxes[cube.id]._targetScale = new THREE.Vector3(0.0, 0.0, 0.0);
+      this.boxes[cube.id]._lerpDone = false;
+      // this.scene.remove(this.boxes[cube.id]);
+      // delete this.boxes[cube.id];
     }
   }
 
@@ -85,13 +98,13 @@ export class Engine {
   lerpTargets() {
     this.boxes.forEach((box) => {
       if (box._targetPosition && !box._lerpDone) {
-        box.position.lerp(box._targetPosition, 0.1);
+        box.position.lerp(box._targetPosition, 0.2);
         if (box.position.distanceTo(box._targetPosition) < 0.001) {
           box._lerpDone = true;
         }
       }
       if (box._targetScale) {
-        box.scale.lerp(box._targetScale, 0.1);
+        box.scale.lerp(box._targetScale, 0.2);
       }
     });
   }
@@ -107,6 +120,8 @@ export class Engine {
                 this.handleActiveCube(cube, x, y, z);
               } else if (cube.state === "locked") {
                 this.handleLockedCube(cube, x, y, z);
+              } else if (cube.state === "empty") {
+                this.handleEmptyCube(cube, x, y, z);
               }
               cube.dirty = false;
             }

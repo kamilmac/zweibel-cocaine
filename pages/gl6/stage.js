@@ -74,7 +74,6 @@ export class Stage {
   resetCube(x, y, z) {
     if (this.isCubeDefined(x, y, z)) {
       this.cubes[x][y][z] = this.getEmptyCube();
-      // this.dirty = true;
     }
   }
 
@@ -107,7 +106,6 @@ export class Stage {
         }
       }
     }
-
     zLine.forEach((n, index) => {
       if (n === 8) {
         for (let z = 0; z < this.depth; z++) {

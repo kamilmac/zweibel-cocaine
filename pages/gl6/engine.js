@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
 // import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 // import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 // import { HBAOPass } from 'three/addons/postprocessing/HBAOPass.js';
@@ -9,11 +10,30 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 // import Lifeforms from "lifeforms";
 
 export class Engine {
-  constructor(stage) {
+  constructor(stage, onReady) {
     this.stage = stage;
     this.boxes = [];
-    this.setup();
     this.idsInStage = [];
+    this.cubeObj = null;
+    new OBJLoader().load(
+      './gl6/cube.obj',
+      (obj) => {
+        obj.traverse((child) => {
+          if (child.isMesh) {
+            this.cubeObj = child.geometry; // Extract the geometry from each mesh
+          }
+        });
+        console.log(this.cubeObj)
+        this.setup();
+        onReady();
+      },
+      (xhr) => {
+        console.log(xhr?.loaded)
+      },
+      (error) => {
+        console.log('error', error)
+      }
+    )
   }
 
   setup() {
@@ -46,7 +66,7 @@ export class Engine {
     );
     this.controls.update();
     this.scene = new THREE.Scene();
-
+    // this.scene.add(this.cubeObj);
     this.renderFloor();
   }
 
@@ -59,9 +79,11 @@ export class Engine {
       this.boxes[cube.id]._lerpDone = false;
       return;
     }
-    const geometry = new THREE.BoxGeometry(1, 1, 1);
+    // const geometry = new THREE.BoxGeometry(1, 1, 1);
+    const geometry = this.cubeObj;
     const material = new THREE.MeshBasicMaterial({ color: cube.color });
     const mesh = new THREE.Mesh(geometry, material);
+    mesh.scale.set(0.5,0.5,0.5);
     mesh.position.x = x;
     mesh.position.y = y;
     mesh.position.z = z;

@@ -9,10 +9,11 @@ class Game {
   constructor() {
     this.blockCyclesCount = 1;
     this.stage = new Stage(12, 8, 8);
-    this.engine = new Engine(this.stage);
-    this.controls = new Controls();
-    this.addBrick();
-    this.loop();
+    this.engine = new Engine(this.stage, () => {
+      this.controls = new Controls();
+      this.addBrick();
+      this.loop();
+    });
   }
 
   onCycleBlocks(callback) {
@@ -43,7 +44,6 @@ class Game {
 }
 
 new Game()
-
 
 const CFG = {
   colors: {

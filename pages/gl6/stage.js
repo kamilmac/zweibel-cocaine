@@ -56,12 +56,17 @@ export class Stage {
     };
   }
 
+  // TODO: pass array of cubes instead here
   fillCube(x, y, z, id, state) {
     let color = 0x00ff00
     if (state === 'locked') {
       color = 0xff0000
     }
     if (this.isCubeDefined(x, y, z)) {
+      console.log(state)
+      if (state === 'locked') {
+        this.checkForFilledLines();
+      }
       this.cubes[x][y][z] = {
         color,
         id,

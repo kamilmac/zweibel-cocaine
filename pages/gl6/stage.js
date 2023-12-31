@@ -8,6 +8,7 @@ export class Stage {
     this.cubes = [];
     this.toBeRemovedCubes = [];
     this.dirty = true;
+    this.lastLockedY = 0;
     this.init();
   }
 
@@ -61,12 +62,9 @@ export class Stage {
     let color = 0x00ff00
     if (state === 'locked') {
       color = 0xff0000
+      this.lastLockedY = y;
     }
     if (this.isCubeDefined(x, y, z)) {
-      console.log(state)
-      if (state === 'locked') {
-        this.checkForFilledLines();
-      }
       this.cubes[x][y][z] = {
         color,
         id,
@@ -101,29 +99,62 @@ export class Stage {
 
   checkForFilledLines() {
     this.toBeRemovedCubes = [];
-    let zLine = [];
-    let y = 0;
+    let xLines = [];
+    let zLines = [];
     for (let x = 0; x < this.width; x++) {
-      zLine[x] = 0;
+      zLines[x] = true;
       for (let z = 0; z < this.depth; z++) {
-        if (this.cubes[x][y][z]?.state === 'locked') {
-          zLine[x] += 1;
+        if (this.cubes[x][this.lastLockedY][z]?.state !== 'locked') {
+          zLines[x] = false;
+          break;
         }
       }
     }
-    zLine.forEach((n, index) => {
-      if (n === 8) {
+    for (let z = 0; z < this.depth; z++) {
+      xLines[z] = true;
+      for (let x = 0; x < this.width; x++) {
+        if (this.cubes[x][this.lastLockedY][z]?.state !== 'locked') {
+          xLines[z] = false;
+          break;
+        }
+      }
+    }
+    
+    const toBeMovedDown = {};
+
+    zLines.forEach((n, index) => {
+      if (n) {
         for (let z = 0; z < this.depth; z++) {
-          this.setToBeRemovedCube(index, 0, z);
-          for (let y = 1; y < this.height; y++) {
+          this.setToBeRemovedCube(index, this.lastLockedY, z);
+          for (let y = this.lastLockedY + 1; y < this.height; y++) {
             if (this.cubes[index][y][z]?.state === 'locked') {
-              this.setToBeMovedDownCube(index, y, z);
+              toBeMovedDown[`${index}-${y}-${z}`] = [index, y, z];
             }
           }
         }
       }
     });
-    window.cubes = this.cubes[0][0];
+
+    xLines.forEach((n, index) => {
+      if (n) {
+        for (let x = 0; x < this.width; x++) {
+          this.setToBeRemovedCube(x, this.lastLockedY, index);
+          for (let y = this.lastLockedY + 1; y < this.height; y++) {
+            if (this.cubes[x][y][index]?.state === 'locked') {
+              toBeMovedDown[`${x}-${y}-${index}`] = [x, y, index];
+            }
+          }
+        }
+      }
+    });
+
+    Object.keys(toBeMovedDown).forEach((key) => {
+      this.setToBeMovedDownCube(
+        toBeMovedDown[key][0],
+        toBeMovedDown[key][1],
+        toBeMovedDown[key][2],
+      );
+    })
   }
 
   isCubeDefined(x, y, z) {

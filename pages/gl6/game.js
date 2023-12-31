@@ -33,6 +33,7 @@ class Game {
     this.onCycleBlocks(() => {
       if (window.paused) return;
       this.brick.moveDown();
+      this.stage.checkForFilledLines();
       if (this.brick.locked) {
         this.addBrick();
       }

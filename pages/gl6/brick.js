@@ -1,8 +1,8 @@
 export class Brick {
   static SHAPES = [
     [
-      [1, 0],
-      [1, 0],
+      [1],
+      [1],
       [1, 1],
     ],
     [
@@ -10,8 +10,23 @@ export class Brick {
       [1, 1],
     ],
     [
-      [1, 0],
+      [1],
       [1, 1],
+    ],
+    [
+      [1],
+      [1, 1],
+      [0, 1],
+    ],
+    [
+      [0, 1],
+      [1, 1],
+      [1],
+    ],
+    [
+      [0, 1],
+      [1, 1, 1],
+      [0, 1],
     ],
     [
       [1],
@@ -22,8 +37,18 @@ export class Brick {
     [
       [1],
       [1],
+      [1],
+    ],
+    [
+      [1],
+      [1],
       [1, 1],
       [1, 1],
+    ],
+    [
+      [1],
+      [1, 1],
+      [1],
     ],
     [
       [1],
@@ -183,8 +208,8 @@ export class Brick {
       Math.floor(Math.random() * this.stage.depth),
     ];
     for (let x = 0; x < shape.length; x++) {
-      for (let y = 0; y < shape[x].length; y++) {
-        if (shape[x][y] === 1) {
+      for (let z = 0; z < shape[x].length; z++) {
+        if (shape[x][z] === 1) {
           const cube = {
             position: [],
             id: this.stage.getNewID(),
@@ -192,8 +217,8 @@ export class Brick {
             locked: false,
           };
           cube.position[0] = startPosition[0] + x;
-          cube.position[1] = startPosition[1] + y;
-          cube.position[2] = startPosition[2];
+          cube.position[1] = startPosition[1];
+          cube.position[2] = startPosition[2] + z;
           this.cubes.push(cube);
         }
       }

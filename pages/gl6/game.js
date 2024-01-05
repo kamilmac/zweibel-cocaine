@@ -45,7 +45,7 @@ class Game {
 
 new Game()
 
-const CFG = {
+export const CFG = {
   colors: {
     active: '',
     locked: '',
@@ -57,5 +57,11 @@ const CFG = {
     width: 8,
     height: 8,
     height: 12,
-  }
+  },
+  controls: {
+    left: 'ArrowLeft',
+    right: 'ArrowRight',
+    down: 'ArrowDown',
+    rotate: 'ArrowUp',
+  },
 };

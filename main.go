@@ -27,7 +27,7 @@ func main() {
 	})
 	r.Handle("/*", http.FileServer(http.Dir("./pages")))
 
-	http.ListenAndServe(":3333", r)
+	http.ListenAndServe(":8000", r)
 }
 
 func getFolderNames() []string {

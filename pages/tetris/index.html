@@ -2,44 +2,11 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>GL TEST</title>
-    <base href="/"></base>
-    <script type="importmap">
-      {
-        "imports": {
-          "three": "https://unpkg.com/three@0.159/build/three.module.min.js",
-          "three/addons/": "https://unpkg.com/three@0.159/examples/jsm/",
-          "lifeforms": "./components/lifeforms.js"
-        }
-      }
-    </script>
-    <style>
-      body {
-        margin: 0;
-      }
-      #qrcode {
-        position: absolute;
-        padding: 9px;
-        background: white;
-        border-radius: 9px;
-        margin: 16px;
-      }
-      .players {
-        position: absolute;
-        display: inline-flex;
-        top: 16px;
-        left: 256px;
-        gap: 12px;
-      }
-      .player {
-        width: 16px;
-        height: 16px;
-        border-radius: 50%;
-      }
-    </style>
+    <title>Tetris</title>
   </head>
   <body>
-    <script type="module" src="./gl6/game.js"></script>
+    <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

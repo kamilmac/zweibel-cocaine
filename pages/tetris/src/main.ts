@@ -1,7 +1,7 @@
-import { Stage } from "/gl6/stage.js";
-import { Brick } from "/gl6/brick.js";
-import { Engine } from "/gl6/engine.js";
-import { Controls } from "/gl6/controls.js";
+import { Stage } from "./stage";
+import { Brick } from "./brick";
+import { Engine } from "./engine";
+import { Controls } from "./controls";
 
 const CYCLE_LENGTH_MS = 400;
 
@@ -40,16 +40,16 @@ class Game {
     });
     this.engine.render();
     requestAnimationFrame(this.loop);
-  }
+  };
 }
 
-new Game()
+new Game();
 
 export const CFG = {
   colors: {
-    active: '',
-    locked: '',
-    floor: '',
+    active: "",
+    locked: "",
+    floor: "",
   },
   cycleTime: 800,
   shapes: [],
@@ -59,9 +59,9 @@ export const CFG = {
     height: 12,
   },
   controls: {
-    left: 'ArrowLeft',
-    right: 'ArrowRight',
-    down: 'ArrowDown',
-    rotate: 'ArrowUp',
+    left: "ArrowLeft",
+    right: "ArrowRight",
+    down: "ArrowDown",
+    rotate: "ArrowUp",
   },
 };

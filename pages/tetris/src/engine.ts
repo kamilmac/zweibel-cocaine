@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
+import cubeObj from './cube.obj?url';
 // import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 // import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 // import { HBAOPass } from 'three/addons/postprocessing/HBAOPass.js';
@@ -16,7 +17,7 @@ export class Engine {
     this.idsInStage = [];
     this.cubeObj = null;
     new OBJLoader().load(
-      './gl6/cube.obj',
+      cubeObj,
       (obj) => {
         obj.traverse((child) => {
           if (child.isMesh) {

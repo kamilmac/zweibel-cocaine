@@ -128,8 +128,7 @@ export default class Lifeforms {
     this.v = [0,0,0]
     for (let i = 0; i < this.modifiers.length; i += 1) {
       this.v = [...this.modifiers[i](this.v)]
-    }
-    requestAnimationFrame(() => this.compute());
+    } requestAnimationFrame(() => this.compute());
   }
 
   get() {

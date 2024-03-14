@@ -1,0 +1,3 @@
+# Top-level configuration
+name = "zweibel-cocaine"
+main = "index.js"

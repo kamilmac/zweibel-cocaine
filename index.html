@@ -9,6 +9,7 @@
         "imports": {
           "three": "https://unpkg.com/three@0.158/build/three.module.min.js",
           "three/addons/": "https://unpkg.com/three@0.158/examples/jsm/",
+          "lit": "https://cdn.jsdelivr.net/gh/lit/dist@3/core/lit-core.min.js",
           "lifeforms": "/components/lifeforms.js"
         }
       }
@@ -17,9 +18,65 @@
       body {
         margin: 0;
       }
+      .grid {
+        margin: 0;
+        padding: 0;
+        display: grid;
+        grid-template-columns: 1fr 600px 1fr;
+        height: 100vh;
+        width: 100vw;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+      }
+
+      .grid-item {
+        display: flex;
+        filter: invert(0);
+        font-family: monospace;
+        padding: 128px 32px;
+        box-sizing: border-box;
+        font-size: 14px;
+        font-weight:100;
+        color: #ddd;
+      }
+
+      .blur {
+        backdrop-filter: blur(0px) invert(0) contrast(1) brightness(0.8);
+      }
+
+      .blur-more {
+        backdrop-filter: blur(24px) invert(0) hue-rotate(122deg) contrast(1.6);
+      }
     </style>
   </head>
   <body>
+    <div
+      id="canvas"
+    ></div>
+    <div class="grid">
+      <div class="grid-item blur-more"></div>
+      <div class="grid-item blur">
+        Hi!
+        <br/>
+        <br/>
+        <br/>
+        I make various kinds of things...
+        <br/>
+        <br/>
+        Some taste sweet, some not as much...
+        <br/>
+        <br/>
+        Things that move, things that transform and resurface from chaos...
+        <br/>
+        <br/>
+        I am practitioner of reverse enthropy.
+      </div>
+      <div class="grid-item blur-more"></div>
+    </div>
+    <!-- <box-lit></box-lit> -->
     <script type="module" src="./index.js"></script>
   </body>
 </html>

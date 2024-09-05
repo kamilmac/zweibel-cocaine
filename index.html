@@ -10,7 +10,41 @@
         background: black;
       }
       #canvas {
-        filter: blur(40px) brightness(0.7);
+        filter: blur(6px) brightness(0.6);
+      }
+      #overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        pointer-events: none;
+      }
+      p {
+        max-width: 500px;
+        font-family: sans-serif;
+        font-weight: 300;
+        letter-spacing: 0.2px;
+        line-height: 22px;
+        font-size: 16px;
+        color: antiquewhite;
+        pointer-events: none;
+      }
+      a {
+        text-decoration: underline;
+        font-family: monospace, 'Courier New', Courier;
+        font-weight: 300;
+        letter-spacing: 0.2px;
+        line-height: 28px;
+        font-size: 14px;
+        color: #adffc2;
+        width: 400px;
+        display: block;
+        pointer-events: all;
       }
     </style>
   </head>
@@ -18,7 +52,14 @@
     <div
       id="canvas"
     ></div>
-
+    <div id="overlay">
+      <p>
+      My name is Kamil Macinski and I'm a software engineer who loves to code both on and off the clock. <br/> When I'm not solving real-world problems with code, you'll find me creating games, experimenting with animations, and exploring the world of generative art. <br /> <br />
+      Work:
+      </p>
+      <a href="https://tetris.zweibel-cocaine.com">Tokyo Night Tetris - WebGL Tetris game</a>
+      <a href="https://creatura.zweibel-cocaine.com">Creatura - WebAssembly experiment with Zig</a>
+    </div>
     <script type="module" src="./index.js"></script>
   </body>
 </html>

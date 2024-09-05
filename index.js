@@ -1,5 +1,4 @@
-import Lifeforms from "lifeforms";
-import { LitElement, css, html } from "lit";
+import Lifeforms from "./lifeforms.js";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { BokehPass } from "three/addons/postprocessing/BokehPass.js";
@@ -79,37 +78,5 @@ const setupThree = () => {
 
   animateScene();
 };
-
-class Box extends LitElement {
-  static properties = {
-    name: {},
-  };
-  static styles = css`
-    :host {
-      color: rgb(249, 249, 249);
-      padding: 12px;
-      box-sizing: border-box;
-      font-family: monospace;
-      position: absolute;
-      display: flex;
-      width: 800px;
-      height: 600px;
-      background: rgba(32, 32, 32, 0.3);
-      border-radius: 12px;
-      backdrop-filter: blur(4px) hue-rotate(163deg);
-      left: calc(100vw / 2 - 400px);
-      top: calc(100vh / 2 - 300px);
-    }
-  `;
-  constructor() {
-    super();
-    this.name = 'World';
-  }
-  render() {
-    return html`
-    `;
-  }
-}
-customElements.define('box-lit', Box);
 
 setupThree();

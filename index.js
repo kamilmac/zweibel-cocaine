@@ -34,6 +34,7 @@ const setupThree = () => {
   // controls.autoRotate = true
 
   const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0a0a0a);
   const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
   const lineMaterial = new THREE.LineBasicMaterial({
     color: 0xbcbcbc,

@@ -15,6 +15,45 @@ lf
   .sphereWalk()
   .scaleBy(0.1);
 
+// Film grain shader for VHS tape effect
+const FilmGrainShader = {
+  uniforms: {
+    tDiffuse: { value: null },
+    time: { value: 0 },
+    grainIntensity: { value: 0.12 }
+  },
+  vertexShader: `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    uniform sampler2D tDiffuse;
+    uniform float time;
+    uniform float grainIntensity;
+    varying vec2 vUv;
+
+    float random(vec2 p) {
+      return fract(sin(dot(p, vec2(12.9898, 78.233)) + time * 0.001) * 43758.5453);
+    }
+
+    void main() {
+      vec4 color = texture2D(tDiffuse, vUv);
+
+      // Generate grain
+      float grain = random(vUv * 2.0);
+      grain = (grain - 0.5) * grainIntensity;
+
+      // Apply grain
+      color.rgb += vec3(grain);
+
+      gl_FragColor = color;
+    }
+  `
+};
+
 const setupThree = () => {
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -60,6 +99,9 @@ const setupThree = () => {
   rgbShift.uniforms.amount.value = 0.004;
   composer.addPass(rgbShift);
 
+  const grainPass = new ShaderPass(FilmGrainShader);
+  composer.addPass(grainPass);
+
   const outPass = new OutputPass();
   composer.addPass(outPass);
 
@@ -74,6 +116,10 @@ const setupThree = () => {
     controls.position = camera.position.lerp(cam, 0.04);
     controls.cursor = target.lerp(n, 0.01);
     controls.update();
+
+    // Update grain animation
+    grainPass.uniforms.time.value = performance.now();
+
     composer.render();
   };
 

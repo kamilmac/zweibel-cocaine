@@ -10,10 +10,24 @@
     <style>
       body {
         margin: 0;
+        padding: 0;
         background: black;
+        overflow: hidden;
+        width: 100vw;
+        height: 100vh;
       }
       #canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
         filter: blur(6px) brightness(0.6);
+      }
+      #canvas canvas {
+        display: block;
+        width: 100vw !important;
+        height: 100vh !important;
       }
       #overlay {
         position: absolute;

@@ -6,7 +6,7 @@
     <title>Zweibel Cocaine</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=DM+Serif+Text:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
     <style>
       body {
         margin: 0;
@@ -45,64 +45,84 @@
         flex-direction: column;
         align-items: flex-start;
       }
+      :root {
+        --cream: #f3eae1;
+        --body-text: rgba(230, 218, 206, 0.82);
+        --muted: rgba(214, 197, 182, 0.5);
+        --accent: #e2b49a;
+        --line: rgba(224, 193, 181, 0.16);
+      }
       .name {
         max-width: 540px;
-        font-family: cursive;
+        font-family: 'DM Serif Text', serif;
         font-weight: 400;
-        font-size: 32px;
-        color: #ffe8e0;
-        margin-bottom: 32px;
+        font-size: 34px;
+        letter-spacing: 0.02em;
+        color: rgba(243, 234, 225, 0.85);
+        margin-bottom: 24px;
         text-align: left;
         pointer-events: none;
-        line-height: 1.4;
+        line-height: 1.1;
       }
       p {
-        max-width: 540px;
+        max-width: 500px;
         font-family: sans-serif;
         font-weight: 300;
-        letter-spacing: 0.3px;
-        line-height: 1.6;
-        font-size: 17px;
-        color: rgba(250, 235, 215, 0.9);
+        letter-spacing: 0.2px;
+        line-height: 1.75;
+        font-size: 16px;
+        color: var(--body-text);
         pointer-events: none;
-        margin: 0 0 40px 0;
+        margin: 0 0 56px 0;
       }
       .section-label {
         font-family: monospace, 'Courier New', Courier;
         font-weight: 400;
-        font-size: 12px;
-        letter-spacing: 1.2px;
+        font-size: 11px;
+        letter-spacing: 0.22em;
         text-transform: uppercase;
-        color: antiquewhite;
-        opacity: 0.5;
-        margin-bottom: 16px;
+        color: var(--muted);
+        margin-bottom: 20px;
         pointer-events: none;
       }
       a {
         text-decoration: none;
         font-family: monospace, 'Courier New', Courier;
         font-weight: 400;
-        letter-spacing: 0.3px;
+        letter-spacing: 0.2px;
         line-height: 1.8;
-        font-size: 15px;
-        color: #e0c1c1;
+        font-size: 14px;
+        color: var(--body-text);
         width: 540px;
         display: block;
         pointer-events: all;
-        border-bottom: 1px solid rgba(224, 193, 193, 0.25);
-        padding-bottom: 6px;
-        margin-bottom: 4px;
+        border-bottom: 1px solid var(--line);
+        padding-bottom: 8px;
+        margin-bottom: 6px;
         transition: border-color 0.2s, opacity 0.2s;
       }
       a:hover {
-        border-bottom-color: rgba(224, 193, 193, 0.6);
+        border-bottom-color: rgba(226, 180, 154, 0.5);
       }
       a strong {
         font-weight: 600;
+        color: var(--accent);
       }
       a .description {
-        opacity: 0.65;
+        color: var(--muted);
         font-weight: 300;
+      }
+      a.inline-link {
+        display: inline;
+        width: auto;
+        margin: 0;
+        padding: 0 0 1px 0;
+        line-height: inherit;
+        color: var(--accent);
+        border-bottom: 1px solid rgba(226, 180, 154, 0.35);
+      }
+      a.inline-link:hover {
+        border-bottom-color: var(--accent);
       }
       footer {
         position: absolute;
@@ -117,18 +137,17 @@
       footer a {
         width: auto;
         pointer-events: all;
-        opacity: 0.4;
-        transition: opacity 0.2s;
         border-bottom: none;
         padding-bottom: 0;
       }
-      footer a:hover {
-        opacity: 1;
-      }
       footer svg {
-        width: 20px;
-        height: 20px;
-        fill: antiquewhite;
+        width: 18px;
+        height: 18px;
+        fill: var(--muted);
+        transition: fill 0.2s;
+      }
+      footer a:hover svg {
+        fill: var(--accent);
       }
 
       @media (max-width: 768px) {
@@ -141,19 +160,19 @@
         }
         .name {
           font-size: 28px;
-          margin-bottom: 28px;
+          margin-bottom: 20px;
           max-width: 100%;
         }
         p {
-          font-size: 17px;
+          font-size: 16px;
           max-width: 100%;
-          margin-bottom: 36px;
+          margin-bottom: 40px;
         }
         .section-label {
-          margin-bottom: 14px;
+          margin-bottom: 16px;
         }
         a {
-          font-size: 15px;
+          font-size: 14px;
           width: 100%;
           max-width: 100%;
           padding-bottom: 8px;
@@ -179,9 +198,10 @@
       <div class="content">
         <div class="name">Kamil Macinski</div>
         <p>
-        Software engineer based in Stockholm. I build software and spend my free time making <a href="https://tetris.zweibel-cocaine.com" target="_blank" rel="noopener noreferrer" style="display: inline; width: auto; border: none; padding: 0; margin: 0;">games</a>, <a href="https://www.youtube.com/@kamilmacinski5691/videos" target="_blank" rel="noopener noreferrer" style="display: inline; width: auto; border: none; padding: 0; margin: 0;">music</a>, and experimenting with generative art.
+        Software engineer based in Stockholm. I build software and spend my free time making <a class="inline-link" href="https://zygfred.zweibel-cocaine.com" target="_blank" rel="noopener noreferrer">sound toys</a>, <a class="inline-link" href="https://tetris.zweibel-cocaine.com" target="_blank" rel="noopener noreferrer">games</a>, <a class="inline-link" href="https://www.youtube.com/@kamilmacinski5691/videos" target="_blank" rel="noopener noreferrer">music</a>, and experimenting with generative art.
         </p>
         <div class="section-label">Projects</div>
+        <a href="https://zygfred.zweibel-cocaine.com" target="_blank" rel="noopener noreferrer"><strong>Zygfred</strong> <span class="description">- FM drum synthesizer in the browser</span></a>
         <a href="https://tetris.zweibel-cocaine.com" target="_blank" rel="noopener noreferrer"><strong>Tokyo Night Tetris</strong> <span class="description">- WebGL Tetris game</span></a>
         <a href="https://github.com/kamilmac/unibear" target="_blank" rel="noopener noreferrer"><strong>Unibear</strong> <span class="description">- Terminal AI assistant for developers</span></a>
         <a href="https://creatura.zweibel-cocaine.com" target="_blank" rel="noopener noreferrer"><strong>Creatura</strong> <span class="description">- WebAssembly experiment with Zig</span></a>
